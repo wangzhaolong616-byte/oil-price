@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>中国油价趋势看板 · 完整使用手册</title>
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#1F4E79">
+<style>
+  :root{
+    --blue:#1F4E79; --blue-d:#16395a; --blue-l:#D9E2F3; --blue-ll:#EEF3FB;
+    --green:#4A7C59; --green-l:#E4EFE7;
+    --amber:#B7791F; --amber-l:#FBF0DC;
+    --red:#C0392B; --red-l:#FBE9E7;
+    --gray:#595959; --line:#E3E8EF; --bg:#F5F7FA; --ink:#1A2430;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;
+    font-size:15.5px;line-height:1.78;-webkit-font-smoothing:antialiased}
+  .page{max-width:1040px;margin:0 auto;padding:0 20px 80px}
+
+  /* ---------- Hero ---------- */
+  .hero{background:linear-gradient(135deg,var(--blue-d) 0%,var(--blue) 55%,#2a6396 100%);
+    color:#fff;margin:0 -20px 30px;padding:46px 40px 40px;border-radius:0 0 20px 20px}
+  .hero .kicker{font-size:12.5px;letter-spacing:3px;opacity:.72;font-weight:600;margin-bottom:12px}
+  .hero h1{font-size:31px;font-weight:700;letter-spacing:-.4px;line-height:1.3;margin-bottom:12px}
+  .hero p{font-size:15px;opacity:.9;max-width:720px;line-height:1.75}
+  .hero-meta{display:flex;gap:9px;flex-wrap:wrap;margin-top:20px}
+  .hero-meta span{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.26);
+    padding:4px 13px;border-radius:20px;font-size:12.5px}
+
+  /* ---------- 通用 ---------- */
+  h2{font-size:21px;font-weight:700;margin:44px 0 16px;padding-bottom:11px;
+    border-bottom:2px solid var(--blue-l);display:flex;align-items:baseline;gap:11px;color:var(--blue)}
+  h2 .num{font-size:14px;color:#fff;background:var(--blue);width:27px;height:27px;
+    border-radius:7px;display:inline-flex;align-items:center;justify-content:center;
+    font-weight:700;flex:none;transform:translateY(-1px)}
+  h3{font-size:16.5px;font-weight:700;margin:26px 0 11px;color:var(--blue-d);
+    display:flex;align-items:center;gap:9px}
+  h3::before{content:"";width:5px;height:17px;background:var(--blue);border-radius:2px;flex:none}
+  h4{font-size:15px;font-weight:700;margin:18px 0 8px;color:var(--ink)}
+  p{margin:9px 0}
+  ul,ol{margin:9px 0 9px 22px}
+  li{margin:5px 0}
+  code{background:var(--blue-ll);color:var(--blue-d);padding:2px 7px;border-radius:5px;
+    font-family:"SF Mono",Consolas,Monaco,monospace;font-size:13.5px;
+    border:1px solid #dbe5f3;word-break:break-all}
+  a{color:var(--blue);text-decoration:none;border-bottom:1px solid var(--blue-l)}
+  a:hover{border-bottom-color:var(--blue)}
+  strong{color:var(--blue-d)}
+
+  /* ---------- 卡片 ---------- */
+  .card{background:#fff;border:1px solid var(--line);border-radius:13px;
+    padding:22px 24px;margin:16px 0;box-shadow:0 1px 3px rgba(16,30,54,.05)}
+  .card > h3:first-child,.card > h4:first-child{margin-top:0}
+
+  /* ---------- 提示框 ---------- */
+  .alert{border-radius:11px;padding:15px 19px;margin:16px 0;border-left:4px solid;
+    font-size:14.5px;line-height:1.75}
+  .alert b{display:block;margin-bottom:5px;font-size:15px}
+  .alert-info{background:var(--blue-ll);border-color:var(--blue)}
+  .alert-warn{background:var(--amber-l);border-color:var(--amber)}
+  .alert-ok{background:var(--green-l);border-color:var(--green)}
+  .alert-danger{background:var(--red-l);border-color:var(--red)}
+
+  /* ---------- 表格 ---------- */
+  .tblwrap{overflow-x:auto;margin:16px 0;border-radius:11px;border:1px solid var(--line)}
+  table{width:100%;border-collapse:collapse;font-size:14px;min-width:600px;background:#fff}
+  th{background:var(--blue);color:#fff;padding:11px 14px;text-align:left;
+    font-weight:600;font-size:13.5px;white-space:nowrap}
+  td{padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  tbody tr:nth-child(even){background:#fafbfd}
+  .yes{color:var(--green);font-weight:700}
+  .no{color:var(--gray)}
+  .mid{color:var(--amber);font-weight:700}
+  .num{font-variant-numeric:tabular-nums;white-space:nowrap}
+
+  /* ---------- 标签 ---------- */
+  .pills{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
+  .pill{font-size:12px;padding:3px 11px;border-radius:20px;font-weight:600;white-space:nowrap}
+  .pill-b{background:var(--blue-l);color:var(--blue-d)}
+  .pill-g{background:var(--green-l);color:var(--green)}
+  .pill-a{background:var(--amber-l);color:var(--amber)}
+  .pill-gy{background:#EDEFF3;color:var(--gray)}
+
+  /* ---------- 网格 ---------- */
+  .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin:16px 0}
+  .grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:13px;margin:16px 0}
+  .mini{background:#fff;border:1px solid var(--line);border-radius:11px;padding:16px 18px}
+  .mini h4{margin:0 0 7px;font-size:14.5px}
+  .mini p{font-size:13.5px;color:var(--gray);margin:5px 0;line-height:1.7}
+  .mini .big{font-size:24px;font-weight:700;color:var(--blue);line-height:1.2}
+
+  /* ---------- 高亮 ---------- */
+  .hl{background:#FFF6D9;padding:2px 7px;border-radius:5px;font-weight:700;color:#7a5410}
+  .lead{font-size:16px;color:var(--gray);line-height:1.8}
+
+  /* ---------- 步骤 ---------- */
+  .steps{counter-reset:s;margin:16px 0}
+  .step{display:flex;gap:15px;padding:13px 0;border-bottom:1px dashed var(--line)}
+  .step:last-child{border-bottom:none}
+  .step .n{counter-increment:s;flex:none;width:29px;height:29px;border-radius:50%;
+    background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;
+    font-weight:700;font-size:14px}
+  .step .n::before{content:counter(s)}
+  .step .body{flex:1;min-width:0}
+  .step .body b{display:block;margin-bottom:3px;font-size:15px}
+  .step .body p{font-size:14px;color:var(--gray);margin:3px 0}
+
+  /* ---------- SVG 容器 ---------- */
+  .fig{margin:18px 0;background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px 16px 12px}
+  .fig svg{width:100%;height:auto;display:block}
+  .note{font-size:13px;color:var(--gray);text-align:center;margin-top:11px;
+    padding-top:11px;border-top:1px dashed var(--line);line-height:1.7}
+
+  /* ---------- 目录 ---------- */
+  .toc{background:#fff;border:1px solid var(--line);border-radius:13px;padding:20px 24px;margin:0 0 8px}
+  .toc h4{margin:0 0 12px;font-size:15px;color:var(--blue-d)}
+  .toc ol{margin:0 0 0 20px;columns:2;column-gap:32px}
+  .toc li{margin:5px 0;font-size:14.5px;break-inside:avoid}
+  .toc a{border:none;color:var(--gray)}
+  .toc a:hover{color:var(--blue)}
+
+  /* ---------- 网址块 ---------- */
+  .urlbox{background:var(--blue-d);color:#fff;border-radius:11px;padding:16px 20px;margin:14px 0;
+    font-family:"SF Mono",Consolas,Monaco,monospace;font-size:14.5px;word-break:break-all;
+    display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .urlbox .lb{font-family:-apple-system,"PingFang SC",sans-serif;font-size:12.5px;
+    opacity:.7;flex:none;letter-spacing:1px}
+
+  footer{margin-top:52px;padding-top:22px;border-top:1px solid var(--line);
+    font-size:13px;color:var(--gray);line-height:1.9}
+
+  @media(max-width:680px){
+    body{font-size:15px}
+    .hero{padding:32px 20px 28px;border-radius:0 0 16px 16px}
+    .hero h1{font-size:23px}
+    .hero p{font-size:14px}
+    .page{padding:0 14px 60px}
+    .card{padding:17px 16px}
+    h2{font-size:18.5px}
+    h3{font-size:15.5px}
+    .toc ol{columns:1}
+    .grid2,.grid3{grid-template-columns:1fr}
+    .fig{padding:12px 10px 10px}
+  }
+  @media print{
+    body{background:#fff;font-size:11.5pt}
+    .hero{background:var(--blue) !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .card,.fig,.mini,.toc{box-shadow:none;break-inside:avoid}
+    h2{break-after:avoid}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- ============ HERO ============ -->
+<div class="hero">
+  <div class="kicker">USER GUIDE · 完整使用手册</div>
+  <h1>中国油价趋势看板<br>使用手册</h1>
+  <p>这份手册把你需要知道的全部讲清楚：这个项目是什么、怎么在手机和电脑上打开、GitHub 那边怎么运作、出问题怎么办、以及有哪些坑要注意。看完这一份就够了。</p>
+  <div class="hero-meta">
+    <span>部署日期 2026-09-26</span>
+    <span>数据 2008 年至今</span>
+    <span>31 省 × 4 种油品</span>
+    <span>每天自动更新 3 次</span>
+    <span>零维护</span>
+  </div>
+</div>
+
+<!-- ============ 0. 速览 ============ -->
+<div class="alert alert-ok">
+  <b>先看这段就够了</b>
+  你的看板已经上线，<strong>每天自动更新，你什么都不用做</strong>。下面三件事记住就行：<br>
+  ① 手机/电脑打开网址就能看　② 可以「添加到主屏幕」当 App 用　③ 有 1 个待办（撤销令牌）和 1 个可选（配邮件）
+</div>
+
+<div class="toc">
+  <h4>目录</h4>
+  <ol>
+    <li><a href="#s1">30 秒速览：你只需要知道这些</a></li>
+    <li><a href="#s2">这是什么？它怎么自己跑起来的</a></li>
+    <li><a href="#s3">文件地图：哪个文件是干嘛的</a></li>
+    <li><a href="#s4">GitHub 是什么（大白话版）</a></li>
+    <li><a href="#s5">网站怎么用：每个区域怎么看</a></li>
+    <li><a href="#s6">手机端怎么用：添加到主屏幕</a></li>
+    <li><a href="#s7">邮件提醒怎么配（可选）</a></li>
+    <li><a href="#s8">日常维护：你其实什么都不用做</a></li>
+    <li><a href="#s9">出问题了怎么办（FAQ）</a></li>
+    <li><a href="#s10">安全提醒（有一条要处理）</a></li>
+    <li><a href="#s11">附录：数据源 / 参数速查</a></li>
+  </ol>
+</div>
+
+<!-- ============ 1 ============ -->
+<h2 id="s1"><span class="num">1</span>30 秒速览：你只需要知道这些</h2>
+
+<h3>你的网址（收藏它）</h3>
+<div class="urlbox">
+  <span class="lb">看板</span>
+  https://wangzhaolong616-byte.github.io/oil-price/
+</div>
+<div class="urlbox">
+  <span class="lb">本手册</span>
+  https://wangzhaolong616-byte.github.io/oil-price/guide.html
+</div>
+
+<p class="lead">在<b>任何设备</b>上打开都能看——手机、平板、公司电脑、甚至别人的电脑。它不依赖你的电脑开着。</p>
+
+<h3>三句话总结</h3>
+<div class="grid3">
+  <div class="mini">
+    <h4>① 它会自己更新</h4>
+    <p>每天凌晨 1 点、上午 9 点、下午 5 点，GitHub 的服务器自动去抓最新油价。你的电脑关着也照跑。</p>
+  </div>
+  <div class="mini">
+    <h4>② 你不用维护</h4>
+    <p>不用装软件、不用开机、不用点任何按钮。它自己会一直跑下去。</p>
+  </div>
+  <div class="mini">
+    <h4>③ 完全免费</h4>
+    <p>没有服务器、没有月费、不用绑卡。GitHub 的公开仓库这些功能都免费。</p>
+  </div>
+</div>
+
+<div class="alert alert-warn">
+  <b>你有两件事要做</b>
+  <strong>必做：</strong>去撤销那个访问令牌（见 <a href="#s10">第 10 章</a>），因为它已经出现在聊天记录里了。<br>
+  <strong>可选：</strong>配置邮件提醒（见 <a href="#s7">第 7 章</a>）。不配也完全不影响看板运行。
+</div>
+
+<!-- ============ 2 ============ -->
+<h2 id="s2"><span class="num">2</span>这是什么？它怎么自己跑起来的</h2>
+
+<p>一句话：<strong>一个自动追踪中国大陆油价、每天自己更新、永远免费的网页看板。</strong></p>
+
+<p>它展示的是全国 31 个省级行政区的 92#/95#/89# 汽油和 0# 柴油零售价，时间跨度从 2008 年第一次调价一直到今天，一共 300 多次调价记录。同时对照国际原油（布伦特、WTI）的走势，并推算下一次调价窗口。</p>
+
+<h3>它是怎么自动跑起来的</h3>
+
+<div class="fig">
+<svg viewBox="0 0 1000 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="系统运行架构图">
+  <defs>
+    <marker id="ar" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" fill="#1F4E79"/>
+    </marker>
+  </defs>
+
+  <!-- 第 1 带：数据源 -->
+  <rect x="20" y="24" width="960" height="106" rx="11" fill="#EEF3FB" stroke="#D9E2F3" stroke-width="1.5"/>
+  <text x="40" y="50" font-size="14" font-weight="700" fill="#1F4E79">① 数据源（4 个，全部免费、无需注册）</text>
+
+  <rect x="42" y="62" width="212" height="50" rx="8" fill="#fff" stroke="#1F4E79" stroke-width="1.5"/>
+  <text x="148" y="83" font-size="13.5" font-weight="700" fill="#1F4E79" text-anchor="middle">东方财富</text>
+  <text x="148" y="101" font-size="12" fill="#595959" text-anchor="middle">国内 31 省零售价（核心）</text>
+
+  <rect x="270" y="62" width="212" height="50" rx="8" fill="#fff" stroke="#4A7C59" stroke-width="1.5"/>
+  <text x="376" y="83" font-size="13.5" font-weight="700" fill="#4A7C59" text-anchor="middle">新浪财经</text>
+  <text x="376" y="101" font-size="12" fill="#595959" text-anchor="middle">国际原油日线（主源）</text>
+
+  <rect x="498" y="62" width="212" height="50" rx="8" fill="#fff" stroke="#B7791F" stroke-width="1.5"/>
+  <text x="604" y="83" font-size="13.5" font-weight="700" fill="#B7791F" text-anchor="middle">腾讯证券</text>
+  <text x="604" y="101" font-size="12" fill="#595959" text-anchor="middle">原油实时报价（兜底）</text>
+
+  <rect x="726" y="62" width="232" height="50" rx="8" fill="#fff" stroke="#595959" stroke-width="1.5"/>
+  <text x="842" y="83" font-size="13.5" font-weight="700" fill="#595959" text-anchor="middle">FRED（美联储）</text>
+  <text x="842" y="101" font-size="12" fill="#595959" text-anchor="middle">补齐 2016 年前的历史</text>
+
+  <line x1="500" y1="130" x2="500" y2="163" stroke="#1F4E79" stroke-width="2" marker-end="url(#ar)"/>
+
+  <!-- 第 2 带：GitHub 自动任务 -->
+  <rect x="20" y="168" width="960" height="120" rx="11" fill="#D9E2F3" stroke="#1F4E79" stroke-width="1.5"/>
+  <text x="40" y="194" font-size="14" font-weight="700" fill="#1F4E79">② GitHub Actions 自动任务（跑在 GitHub 的服务器上，不是你电脑）</text>
+
+  <rect x="42" y="208" width="176" height="62" rx="8" fill="#fff" stroke="#1F4E79" stroke-width="1.5"/>
+  <text x="130" y="230" font-size="13" font-weight="700" fill="#1F4E79" text-anchor="middle">定时触发</text>
+  <text x="130" y="249" font-size="11.5" fill="#595959" text-anchor="middle">每天 01:00 / 09:00</text>
+  <text x="130" y="263" font-size="11.5" fill="#595959" text-anchor="middle">/ 17:00（北京时间）</text>
+
+  <rect x="236" y="208" width="176" height="62" rx="8" fill="#fff" stroke="#1F4E79" stroke-width="1.5"/>
+  <text x="324" y="230" font-size="13" font-weight="700" fill="#1F4E79" text-anchor="middle">抓取 + 对账</text>
+  <text x="324" y="249" font-size="11.5" fill="#595959" text-anchor="middle">多源交叉校验</text>
+  <text x="324" y="263" font-size="11.5" fill="#595959" text-anchor="middle">异常值自动剔除</text>
+
+  <rect x="430" y="208" width="176" height="62" rx="8" fill="#fff" stroke="#1F4E79" stroke-width="1.5"/>
+  <text x="518" y="230" font-size="13" font-weight="700" fill="#1F4E79" text-anchor="middle">生成数据</text>
+  <text x="518" y="249" font-size="11.5" fill="#595959" text-anchor="middle">算下次调价窗口</text>
+  <text x="518" y="263" font-size="11.5" fill="#595959" text-anchor="middle">估算幅度与方向</text>
+
+  <rect x="624" y="208" width="176" height="62" rx="8" fill="#fff" stroke="#1F4E79" stroke-width="1.5"/>
+  <text x="712" y="230" font-size="13" font-weight="700" fill="#1F4E79" text-anchor="middle">提交回仓库</text>
+  <text x="712" y="249" font-size="11.5" fill="#595959" text-anchor="middle">自动 commit</text>
+  <text x="712" y="263" font-size="11.5" fill="#595959" text-anchor="middle">并发冲突自动重试</text>
+
+  <rect x="818" y="208" width="140" height="62" rx="8" fill="#fff" stroke="#B7791F" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="888" y="230" font-size="13" font-weight="700" fill="#B7791F" text-anchor="middle">发邮件</text>
+  <text x="888" y="249" font-size="11.5" fill="#595959" text-anchor="middle">每天 1 封</text>
+  <text x="888" y="263" font-size="11.5" fill="#595959" text-anchor="middle">（可选）</text>
+
+  <line x1="500" y1="288" x2="500" y2="321" stroke="#1F4E79" stroke-width="2" marker-end="url(#ar)"/>
+
+  <!-- 第 3 带：展示 -->
+  <rect x="20" y="326" width="960" height="88" rx="11" fill="#E4EFE7" stroke="#4A7C59" stroke-width="1.5"/>
+  <text x="40" y="352" font-size="14" font-weight="700" fill="#4A7C59">③ 展示（GitHub Pages 免费托管，任何设备打开都能看）</text>
+
+  <rect x="42" y="364" width="290" height="40" rx="8" fill="#fff" stroke="#4A7C59" stroke-width="1.5"/>
+  <text x="187" y="389" font-size="13" font-weight="700" fill="#4A7C59" text-anchor="middle">在线版网页（手机/电脑都能开）</text>
+
+  <rect x="352" y="364" width="290" height="40" rx="8" fill="#fff" stroke="#4A7C59" stroke-width="1.5"/>
+  <text x="497" y="389" font-size="13" font-weight="700" fill="#4A7C59" text-anchor="middle">离线版单文件（存手机随时开）</text>
+
+  <rect x="662" y="364" width="296" height="40" rx="8" fill="#fff" stroke="#4A7C59" stroke-width="1.5"/>
+  <text x="810" y="389" font-size="13" font-weight="700" fill="#4A7C59" text-anchor="middle">邮件日报（可选）</text>
+</svg>
+<div class="note">这张图讲的是：数据从哪来 → 谁在什么时候处理 → 最后在哪里能看到。<br>关键点：<b>中间那层跑在 GitHub 的服务器上，不是你的电脑</b>，所以你的电脑关不关机都不影响。</div>
+</div>
+
+<h3>一天里它做了什么</h3>
+
+<div class="fig">
+<svg viewBox="0 0 1000 190" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="每日运行时间线">
+  <line x1="70" y1="96" x2="945" y2="96" stroke="#D9E2F3" stroke-width="5" stroke-linecap="round"/>
+
+  <circle cx="160" cy="96" r="11" fill="#1F4E79"/>
+  <text x="160" y="62" font-size="14" font-weight="700" fill="#1F4E79" text-anchor="middle">01:00</text>
+  <text x="160" y="130" font-size="12.5" fill="#595959" text-anchor="middle">抓一次</text>
+  <text x="160" y="148" font-size="11.5" fill="#8a94a3" text-anchor="middle">覆盖跨零点更新的调价</text>
+
+  <circle cx="420" cy="96" r="11" fill="#1F4E79"/>
+  <text x="420" y="62" font-size="14" font-weight="700" fill="#1F4E79" text-anchor="middle">09:00</text>
+  <text x="420" y="130" font-size="12.5" fill="#595959" text-anchor="middle">抓一次 + 发邮件</text>
+  <text x="420" y="148" font-size="11.5" fill="#8a94a3" text-anchor="middle">当天唯一的一封日报</text>
+
+  <circle cx="700" cy="96" r="11" fill="#1F4E79"/>
+  <text x="700" y="62" font-size="14" font-weight="700" fill="#1F4E79" text-anchor="middle">17:00</text>
+  <text x="700" y="130" font-size="12.5" fill="#595959" text-anchor="middle">抓一次</text>
+  <text x="700" y="148" font-size="11.5" fill="#8a94a3" text-anchor="middle">跟上国际油价当天的变化</text>
+
+  <circle cx="890" cy="96" r="9" fill="#4A7C59"/>
+  <text x="890" y="62" font-size="13.5" font-weight="700" fill="#4A7C59" text-anchor="middle">随时</text>
+  <text x="890" y="130" font-size="12.5" fill="#595959" text-anchor="middle">你打开网页</text>
+  <text x="890" y="148" font-size="11.5" fill="#8a94a3" text-anchor="middle">看到的就是最新的</text>
+</svg>
+<div class="note">一天跑三次，覆盖了"调价发生在半夜""国际油价白天波动"这两种情况。你任何时候打开网页，看到的都是最近一次抓取的结果。</div>
+</div>
+
+<!-- ============ 3 ============ -->
+<h2 id="s3"><span class="num">3</span>文件地图：哪个文件是干嘛的</h2>
+
+<p>整个项目一共 19 个文件。但<span class="hl">你真正需要关心的只有 2 个网页文件</span>，其它全是让它自动运转的"后台机器"。</p>
+
+<div class="tblwrap">
+<table>
+<thead><tr><th style="width:30%">文件</th><th style="width:14%">类型</th><th style="width:13%">你要管吗</th><th>说明</th></tr></thead>
+<tbody>
+<tr>
+  <td><code>docs/index.html</code></td>
+  <td><span class="pill pill-b">在线版网页</span></td>
+  <td class="yes">看一眼</td>
+  <td>你手机上打开的那个页面本体。数据从同目录的 <code>prices.json</code> 读取</td>
+</tr>
+<tr>
+  <td><code>docs/oil-price-offline.html</code></td>
+  <td><span class="pill pill-g">离线版网页</span></td>
+  <td class="yes">看一眼</td>
+  <td>1.5 MB 单文件，图表库和数据全部打包在里面。双击就能开，<strong>完全不用联网</strong>，可以存手机、发微信</td>
+</tr>
+<tr>
+  <td><code>docs/guide.html</code></td>
+  <td><span class="pill pill-a">本手册</span></td>
+  <td class="yes">看一眼</td>
+  <td>你现在读的这个</td>
+</tr>
+<tr>
+  <td><code>docs/manifest.webmanifest</code></td>
+  <td><span class="pill pill-gy">配置</span></td>
+  <td class="no">不用管</td>
+  <td>让手机能把网页「添加到主屏幕」，变成像 App 一样的东西</td>
+</tr>
+<tr>
+  <td><code>docs/icon-192.png</code><br><code>docs/icon-512.png</code><br><code>docs/apple-touch-icon.png</code></td>
+  <td><span class="pill pill-gy">图标</span></td>
+  <td class="no">不用管</td>
+  <td>添加到主屏幕后显示的那个图标</td>
+</tr>
+<tr>
+  <td><code>docs/prices.json</code></td>
+  <td><span class="pill pill-b">数据</span></td>
+  <td class="no">不用管</td>
+  <td>505 KB 的价格数据，每天被自动覆盖更新</td>
+</tr>
+<tr>
+  <td><code>docs/vendor/echarts.min.js</code></td>
+  <td><span class="pill pill-gy">图表库</span></td>
+  <td class="no">不用管</td>
+  <td>画图用的开源库。刻意放在本地而不是用网上的，避免哪天外部服务挂了图表就废了</td>
+</tr>
+<tr>
+  <td><code>docs/.nojekyll</code></td>
+  <td><span class="pill pill-gy">配置</span></td>
+  <td class="no">不用管</td>
+  <td>一个空文件，作用是告诉 GitHub「别对我的文件做额外加工」</td>
+</tr>
+<tr>
+  <td><code>fetch_oil.py</code></td>
+  <td><span class="pill pill-a">源码·核心</span></td>
+  <td class="mid">想改就看</td>
+  <td>抓取脚本。负责去 4 个数据源拿数据、交叉对账、算下次调价预测。<strong>纯标准库，不依赖任何第三方库</strong></td>
+</tr>
+<tr>
+  <td><code>build_standalone.py</code></td>
+  <td><span class="pill pill-gy">源码</span></td>
+  <td class="no">不用管</td>
+  <td>把网页 + 图表库 + 数据打包成那个 1.5 MB 的离线单文件</td>
+</tr>
+<tr>
+  <td><code>mail_digest.py</code></td>
+  <td><span class="pill pill-gy">源码</span></td>
+  <td class="no">配邮件才看</td>
+  <td>生成并发送邮件日报</td>
+</tr>
+<tr>
+  <td><code>smoke_test.py</code></td>
+  <td><span class="pill pill-gy">测试</span></td>
+  <td class="no">不用管</td>
+  <td>自动化检查：页面能不能正常渲染、图表有没有画出来、有没有报错</td>
+</tr>
+<tr>
+  <td><code>.github/workflows/update.yml</code></td>
+  <td><span class="pill pill-a">源码·自动化</span></td>
+  <td class="mid">想改频率看</td>
+  <td>定时任务的定义文件：什么时候跑、跑什么、怎么提交</td>
+</tr>
+<tr>
+  <td><code>data/prices.json</code></td>
+  <td><span class="pill pill-b">数据存档</span></td>
+  <td class="no">不用管</td>
+  <td>和 <code>docs/prices.json</code> 内容一样，留一份备份</td>
+</tr>
+<tr>
+  <td><code>README.md</code></td>
+  <td><span class="pill pill-gy">说明</span></td>
+  <td class="no">不用管</td>
+  <td>给开发者看的部署文档</td>
+</tr>
+<tr>
+  <td><code>LICENSE</code></td>
+  <td><span class="pill pill-gy">协议</span></td>
+  <td class="no">不用管</td>
+  <td>MIT 开源协议</td>
+</tr>
+<tr>
+  <td><code>.gitignore</code></td>
+  <td><span class="pill pill-gy">配置</span></td>
+  <td class="no">不用管</td>
+  <td>告诉 Git 哪些临时文件不用上传（比如测试截图）</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+<div class="alert alert-info">
+  <b>一句话记住</b>
+  看板本体就是 <code>index.html</code>（在线）和 <code>oil-price-offline.html</code>（离线）这两个 HTML 文件。其它都是让它们每天自动更新的"后台机器"。
+</div>
+
+<!-- ============ 4 ============ -->
+<h2 id="s4"><span class="num">4</span>GitHub 是什么（大白话版）</h2>
+
+<p>你可能会觉得 GitHub 是程序员才用的东西，其实对你来说，它在这里扮演的角色就两个：<strong>一个网盘 + 一个自动机器人</strong>。</p>
+
+<div class="grid2">
+  <div class="mini">
+    <h4>角色一：网盘（存代码和网页）</h4>
+    <p>你的网页文件、数据文件都存放在 GitHub 的仓库里。免费、无限期、不会因为你关机就消失。</p>
+  </div>
+  <div class="mini">
+    <h4>角色二：自动机器人（定时干活）</h4>
+    <p>GitHub 有个叫 <strong>Actions</strong> 的功能，可以设定"每天几点做什么"。你的项目就是靠它每天自动抓油价、更新网页。</p>
+  </div>
+</div>
+
+<h3>四个关键词，一次搞懂</h3>
+
+<div class="tblwrap">
+<table>
+<thead><tr><th style="width:18%">词</th><th style="width:30%">大白话解释</th><th>在你的项目里具体指什么</th></tr></thead>
+<tbody>
+<tr>
+  <td><strong>仓库</strong><br><span style="font-size:12px;color:#8a94a3">Repository</span></td>
+  <td>就是一个文件夹，存在 GitHub 的服务器上</td>
+  <td>你有一个仓库叫 <code>oil-price</code>，里面装着全部 19 个文件</td>
+</tr>
+<tr>
+  <td><strong>Actions</strong></td>
+  <td>自动机器人。你告诉它"每天几点干什么"，它就照做</td>
+  <td>每天跑 3 次的 <code>update-oil-price</code> 任务</td>
+</tr>
+<tr>
+  <td><strong>Pages</strong></td>
+  <td>免费网页托管。把仓库里的文件变成一个真正的网址</td>
+  <td>把 <code>docs</code> 文件夹变成你手机能打开的网址</td>
+</tr>
+<tr>
+  <td><strong>Secrets</strong></td>
+  <td>加密保险箱。存密码用的，存进去连自己也看不到</td>
+  <td>存你的邮箱授权码（如果配了邮件提醒的话）</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+<h3>你的仓库长什么样</h3>
+
+<div class="fig">
+<svg viewBox="0 0 1000 330" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="GitHub 仓库页面结构示意">
+  <!-- 浏览器外框 -->
+  <rect x="20" y="18" width="960" height="294" rx="11" fill="#fff" stroke="#E3E8EF" stroke-width="1.5"/>
+  <rect x="20" y="18" width="960" height="34" rx="11" fill="#F5F7FA"/>
+  <rect x="20" y="41" width="960" height="11" fill="#F5F7FA"/>
+  <circle cx="42" cy="35" r="5" fill="#E3A9A4"/>
+  <circle cx="60" cy="35" r="5" fill="#E8D3A0"/>
+  <circle cx="78" cy="35" r="5" fill="#A9C7B0"/>
+  <text x="104" y="40" font-size="12" fill="#8a94a3">github.com/wangzhaolong616-byte/oil-price</text>
+
+  <!-- 仓库标题区 -->
+  <text x="44" y="84" font-size="15" font-weight="700" fill="#1F4E79">wangzhaolong616-byte / oil-price</text>
+  <rect x="378" y="70" width="52" height="20" rx="10" fill="#EEF3FB" stroke="#D9E2F3"/>
+  <text x="404" y="84" font-size="11" fill="#1F4E79" text-anchor="middle">Public</text>
+
+  <!-- 标签栏 -->
+  <text x="44" y="120" font-size="12.5" fill="#595959" font-weight="600">Code</text>
+  <text x="92" y="120" font-size="12.5" fill="#1F4E79" font-weight="700">Issues</text>
+  <text x="146" y="120" font-size="12.5" fill="#1F4E79" font-weight="700">Actions</text>
+  <text x="206" y="120" font-size="12.5" fill="#595959" font-weight="600">Settings</text>
+  <line x1="40" y1="130" x2="960" y2="130" stroke="#E3E8EF" stroke-width="1.5"/>
+
+  <!-- 左侧文件树 -->
+  <rect x="44" y="148" width="404" height="146" rx="8" fill="#FAFBFD" stroke="#E3E8EF"/>
+  <text x="60" y="170" font-size="12.5" font-weight="700" fill="#1F4E79">.github</text>
+  <text x="86" y="190" font-size="12.5" fill="#595959">workflows</text>
+  <text x="112" y="210" font-size="12.5" fill="#4A7C59" font-weight="600">update.yml</text>
+  <text x="60" y="234" font-size="12.5" font-weight="700" fill="#1F4E79">docs</text>
+  <text x="86" y="254" font-size="12.5" fill="#4A7C59" font-weight="600">index.html</text>
+  <text x="196" y="254" font-size="11.5" fill="#8a94a3">← 在线版</text>
+  <text x="86" y="274" font-size="12.5" fill="#4A7C59" font-weight="600">oil-price-offline.html</text>
+  <text x="262" y="274" font-size="11.5" fill="#8a94a3">← 离线版</text>
+
+  <!-- 右侧说明 -->
+  <rect x="472" y="148" width="488" height="146" rx="8" fill="#EEF3FB" stroke="#D9E2F3"/>
+  <text x="492" y="174" font-size="13" font-weight="700" fill="#1F4E79">你只需要认识两个地方</text>
+
+  <rect x="492" y="188" width="14" height="14" rx="4" fill="#1F4E79"/>
+  <text x="516" y="200" font-size="12.5" fill="#595959">点 <tspan font-weight="700" fill="#1F4E79">Actions</tspan> 标签 → 看每天有没有正常跑（绿色勾 = 正常）</text>
+
+  <rect x="492" y="216" width="14" height="14" rx="4" fill="#B7791F"/>
+  <text x="516" y="228" font-size="12.5" fill="#595959">点 <tspan font-weight="700" fill="#B7791F">Settings → Pages</tspan> → 确认网页托管是开着的</text>
+
+  <text x="492" y="258" font-size="12.5" fill="#8a94a3">其它按钮你基本用不到，不用去点。</text>
+  <text x="492" y="280" font-size="12.5" fill="#8a94a3">整个仓库是公开的，任何人都能看到（这是免费的前提）。</text>
+</svg>
+<div class="note">这是你仓库页面的结构示意。日常你只要偶尔看一眼 <b>Actions</b> 里有没有绿色的勾，就知道系统在正常运行。</div>
+</div>
+
+<div class="alert alert-info">
+  <b>仓库为什么必须是公开的？</b>
+  公开仓库用 GitHub Actions 是<b>完全免费、不限时长</b>的；私有仓库每月只有 2000 分钟免费额度。你这个项目每天跑 3 次、每次 1 分钟出头，一个月大概 100 分钟——即使私有也够用，但公开更省心，而且能让 Pages 免费托管。
+  <br><br>
+  <b>公开会不会泄露隐私？</b>
+  仓库里只有代码和公开的油价数据，没有任何你的个人信息。你的邮箱授权码存在加密的 Secrets 里，公开仓库也看不到。
+</div>
+
+<!-- ============ 5 ============ -->
+<h2 id="s5"><span class="num">5</span>网站怎么用：每个区域怎么看</h2>
+
+<p>打开网址，从上到下依次是这些内容。整页都是<b>自适应</b>的，手机上会自动变成单列。</p>
+
+<div class="fig">
+<svg viewBox="0 0 1000 560" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="网页区域导览图">
+  <!-- 页面外框 -->
+  <rect x="30" y="16" width="620" height="528" rx="11" fill="#F5F7FA" stroke="#E3E8EF" stroke-width="1.5"/>
+
+  <!-- 头部 -->
+  <rect x="46" y="32" width="588" height="52" rx="8" fill="#fff" stroke="#E3E8EF"/>
+  <circle cx="66" cy="52" r="5" fill="#C0392B"/>
+  <text x="80" y="57" font-size="13" font-weight="700" fill="#1A2430">中国油价趋势看板</text>
+  <text x="80" y="74" font-size="11" fill="#8a94a3">数据更新 2026/9/26 11:46 · 覆盖 31 省…</text>
+  <rect x="548" y="45" width="70" height="24" rx="6" fill="#EEF3FB" stroke="#D9E2F3"/>
+  <text x="583" y="61" font-size="11" fill="#1F4E79" text-anchor="middle">切换主题</text>
+
+  <!-- 三张卡片 -->
+  <rect x="46" y="94" width="190" height="96" rx="8" fill="#fff" stroke="#1F4E79" stroke-width="1.6"/>
+  <text x="60" y="112" font-size="10.5" fill="#8a94a3" font-weight="600">下次调价窗口</text>
+  <text x="60" y="136" font-size="21" font-weight="700" fill="#1A2430">13<tspan font-size="12" fill="#8a94a3"> 天后</tspan></text>
+  <rect x="60" y="146" width="56" height="17" rx="9" fill="#E4EFE7"/>
+  <text x="88" y="158" font-size="10.5" fill="#4A7C59" text-anchor="middle" font-weight="700">预计下调</text>
+  <rect x="60" y="172" width="162" height="5" rx="3" fill="#EEF3FB"/>
+  <rect x="60" y="172" width="12" height="5" rx="3" fill="#1F4E79"/>
+
+  <rect x="245" y="94" width="190" height="96" rx="8" fill="#fff" stroke="#E3E8EF"/>
+  <text x="259" y="112" font-size="10.5" fill="#8a94a3" font-weight="600">浙江 · 最新零售价</text>
+  <text x="259" y="136" font-size="21" font-weight="700" fill="#1A2430">8.58<tspan font-size="12" fill="#8a94a3"> 元/升</tspan></text>
+  <text x="259" y="158" font-size="11" fill="#C0392B" font-weight="700">92# +0.32</text>
+  <text x="316" y="158" font-size="11" fill="#C0392B" font-weight="700">95# +0.33</text>
+  <text x="373" y="158" font-size="11" fill="#C0392B" font-weight="700">0# +0.33</text>
+
+  <rect x="444" y="94" width="190" height="96" rx="8" fill="#fff" stroke="#E3E8EF"/>
+  <text x="458" y="112" font-size="10.5" fill="#8a94a3" font-weight="600">国际原油（实时）</text>
+  <text x="458" y="136" font-size="21" font-weight="700" fill="#1A2430">97.48<tspan font-size="12" fill="#8a94a3"> 美元/桶</tspan></text>
+  <text x="458" y="158" font-size="11" fill="#8a94a3">WTI 91.55 美元/桶</text>
+  <text x="458" y="176" font-size="10.5" fill="#8a94a3">报价时间 2026-09-26 11:46</text>
+
+  <!-- 控件条 -->
+  <rect x="46" y="200" width="588" height="38" rx="8" fill="#fff" stroke="#E3E8EF"/>
+  <text x="60" y="224" font-size="11" fill="#8a94a3" font-weight="600">地区</text>
+  <rect x="92" y="210" width="70" height="19" rx="5" fill="#EEF3FB"/>
+  <text x="127" y="223" font-size="10.5" fill="#1F4E79" text-anchor="middle">浙江 ▾</text>
+  <text x="180" y="224" font-size="11" fill="#8a94a3" font-weight="600">油品</text>
+  <rect x="212" y="210" width="58" height="19" rx="5" fill="#4a9eff"/>
+  <text x="241" y="223" font-size="10" fill="#fff" text-anchor="middle">92# 汽油</text>
+  <rect x="276" y="210" width="58" height="19" rx="5" fill="#c98a2b"/>
+  <text x="305" y="223" font-size="10" fill="#fff" text-anchor="middle">95# 汽油</text>
+  <rect x="340" y="210" width="58" height="19" rx="5" fill="#3f8f63"/>
+  <text x="369" y="223" font-size="10" fill="#fff" text-anchor="middle">0# 柴油</text>
+  <text x="416" y="224" font-size="11" fill="#8a94a3" font-weight="600">时间</text>
+  <rect x="448" y="210" width="44" height="19" rx="5" fill="#EEF3FB"/>
+  <text x="470" y="223" font-size="10" fill="#1F4E79" text-anchor="middle">近1年</text>
+  <rect x="496" y="210" width="44" height="19" rx="5" fill="#EEF3FB"/>
+  <text x="518" y="223" font-size="10" fill="#1F4E79" text-anchor="middle">近3年</text>
+  <rect x="544" y="210" width="44" height="19" rx="5" fill="#1F4E79"/>
+  <text x="566" y="223" font-size="10" fill="#fff" text-anchor="middle">近5年</text>
+  <rect x="592" y="210" width="36" height="19" rx="5" fill="#EEF3FB"/>
+  <text x="610" y="223" font-size="10" fill="#1F4E79" text-anchor="middle">全部</text>
+
+  <!-- 图 1 -->
+  <rect x="46" y="248" width="588" height="76" rx="8" fill="#fff" stroke="#E3E8EF"/>
+  <text x="60" y="266" font-size="11.5" font-weight="700" fill="#1A2430">成品油零售价历史走势</text>
+  <polyline points="60,312 120,304 180,308 240,290 300,296 360,278 420,284 480,268 540,274 620,258"
+    fill="none" stroke="#4a9eff" stroke-width="2"/>
+  <polyline points="60,318 120,312 180,315 240,300 300,305 360,290 420,294 480,282 540,286 620,272"
+    fill="none" stroke="#c98a2b" stroke-width="2"/>
+  <rect x="60" y="318" width="560" height="4" rx="2" fill="#F5F7FA"/>
+
+  <!-- 图 2 -->
+  <rect x="46" y="332" width="588" height="76" rx="8" fill="#fff" stroke="#E3E8EF"/>
+  <text x="60" y="350" font-size="11.5" font-weight="700" fill="#1A2430">国内油价 与 国际原油 对照</text>
+  <polyline points="60,394 120,394 120,386 200,386 200,378 300,378 300,388 400,388 400,374 520,374 520,380 620,380"
+    fill="none" stroke="#4a9eff" stroke-width="2"/>
+  <polyline points="60,398 120,382 180,390 240,370 300,376 360,358 420,366 480,352 540,358 620,346"
+    fill="none" stroke="#e8834a" stroke-width="1.6"/>
+
+  <!-- 图 3 -->
+  <rect x="46" y="416" width="588" height="76" rx="8" fill="#fff" stroke="#E3E8EF"/>
+  <text x="60" y="434" font-size="11.5" font-weight="700" fill="#1A2430">历次调价幅度</text>
+  <g>
+    <rect x="70" y="462" width="6" height="16" fill="#C0392B"/>
+    <rect x="82" y="470" width="6" height="8" fill="#C0392B"/>
+    <rect x="94" y="474" width="6" height="4" fill="#4A7C59"/>
+    <rect x="106" y="458" width="6" height="20" fill="#C0392B"/>
+    <rect x="118" y="466" width="6" height="12" fill="#C0392B"/>
+    <rect x="130" y="478" width="6" height="4" fill="#4A7C59"/>
+    <rect x="142" y="472" width="6" height="6" fill="#4A7C59"/>
+    <rect x="154" y="460" width="6" height="18" fill="#C0392B"/>
+    <rect x="166" y="476" width="6" height="6" fill="#4A7C59"/>
+    <rect x="178" y="464" width="6" height="14" fill="#C0392B"/>
+    <rect x="190" y="478" width="6" height="4" fill="#4A7C59"/>
+    <rect x="202" y="468" width="6" height="10" fill="#C0392B"/>
+    <line x1="60" y1="478" x2="620" y2="478" stroke="#E3E8EF" stroke-width="1"/>
+  </g>
+
+  <!-- 表格 -->
+  <rect x="46" y="500" width="588" height="34" rx="8" fill="#fff" stroke="#E3E8EF"/>
+  <text x="60" y="521" font-size="11.5" font-weight="700" fill="#1A2430">全国 31 省最新油价</text>
+  <text x="240" y="521" font-size="10.5" fill="#8a94a3">按 92# 降序 · 点击可切换省份</text>
+
+  <!-- 右侧标注 -->
+  <g font-size="12.5" fill="#595959">
+    <line x1="676" y1="142" x2="654" y2="142" stroke="#B7791F" stroke-width="1.5"/>
+    <circle cx="654" cy="142" r="3" fill="#B7791F"/>
+    <text x="688" y="138" font-weight="700" fill="#B7791F">① 下次调价预测</text>
+    <text x="688" y="156" font-size="11.5" fill="#8a94a3">倒计时 + 方向 + 估算幅度</text>
+
+    <line x1="676" y1="330" x2="654" y2="330" stroke="#1F4E79" stroke-width="1.5"/>
+    <circle cx="654" cy="330" r="3" fill="#1F4E79"/>
+    <text x="688" y="326" font-weight="700" fill="#1F4E79">② 控件区</text>
+    <text x="688" y="344" font-size="11.5" fill="#8a94a3">切省份 / 油品 / 时间范围</text>
+
+    <line x1="676" y1="286" x2="654" y2="286" stroke="#1F4E79" stroke-width="1.5"/>
+    <circle cx="654" cy="286" r="3" fill="#1F4E79"/>
+    <text x="688" y="282" font-weight="700" fill="#1F4E79">③ 历史走势</text>
+    <text x="688" y="300" font-size="11.5" fill="#8a94a3">可多选油品叠加对比</text>
+
+    <line x1="676" y1="370" x2="654" y2="370" stroke="#1F4E79" stroke-width="1.5"/>
+    <circle cx="654" cy="370" r="3" fill="#1F4E79"/>
+    <text x="688" y="366" font-weight="700" fill="#1F4E79">④ 国际对照</text>
+    <text x="688" y="384" font-size="11.5" fill="#8a94a3">看国际→国内的传导滞后</text>
+
+    <line x1="676" y1="454" x2="654" y2="454" stroke="#1F4E79" stroke-width="1.5"/>
+    <circle cx="654" cy="454" r="3" fill="#1F4E79"/>
+    <text x="688" y="450" font-weight="700" fill="#1F4E79">⑤ 调价幅度</text>
+    <text x="688" y="468" font-size="11.5" fill="#8a94a3">红=涨 绿=跌</text>
+
+    <line x1="676" y1="517" x2="654" y2="517" stroke="#1F4E79" stroke-width="1.5"/>
+    <circle cx="654" cy="517" r="3" fill="#1F4E79"/>
+    <text x="688" y="513" font-weight="700" fill="#1F4E79">⑥ 31 省排行</text>
+    <text x="688" y="531" font-size="11.5" fill="#8a94a3">你选的省份会高亮</text>
+  </g>
+</svg>
+<div class="note">这是网页从上到下的全部内容。手机上这些区块会自动堆叠成一列，左右滑动表格可以看完整数据。</div>
+</div>
+
+<h3>四张图分别在看什么</h3>
+
+<div class="grid2">
+  <div class="mini">
+    <h4>① 历史走势图（折线）</h4>
+    <p><b>看什么：</b>价格长期是涨是跌、什么时候有大波动。</p>
+    <p><b>怎么玩：</b>上方油品标签可以多选，同时叠好几条线对比。拖动底部的滑块可以放大看某一段时间。</p>
+  </div>
+  <div class="mini">
+    <h4>② 国际对照图（双轴）</h4>
+    <p><b>看什么：</b>国际原油先动、国内后跟的"传导滞后"。蓝线是国内价（阶梯状，因为调价后才变），橙紫线是布伦特和 WTI。</p>
+    <p><b>能发现：</b>国际油价大涨之后，国内通常要等 1~2 周才跟上。</p>
+  </div>
+  <div class="mini">
+    <h4>③ 调价幅度图（柱状）</h4>
+    <p><b>看什么：</b>每次调价涨跌多少。<span style="color:#C0392B;font-weight:700">红色=上涨</span>，<span style="color:#4A7C59;font-weight:700">绿色=下跌</span>（跟 A 股一样）。</p>
+    <p><b>能发现：</b>波动剧烈的时期柱子特别高，比如国际局势紧张的月份。</p>
+  </div>
+  <div class="mini">
+    <h4>④ 下次调价预测（卡片）</h4>
+    <p><b>看什么：</b>距离下次调价还有几天、大概率涨还是跌、估算幅度多少。</p>
+    <p><b>注意：</b>这是按历史规律推算的，<b>不是官方预测</b>，最终以发改委公告为准。</p>
+  </div>
+</div>
+
+<h3>页面上的操作</h3>
+<div class="tblwrap">
+<table>
+<thead><tr><th style="width:26%">操作</th><th>效果</th></tr></thead>
+<tbody>
+<tr><td>切换地区</td><td>左上角下拉框，31 个省级行政区任选。默认是浙江</td></tr>
+<tr><td>切换油品</td><td>点油品标签可以多选，至少保留一个。想只看柴油就点掉汽油两个</td></tr>
+<tr><td>切换时间</td><td>近 1 年 / 3 年 / 5 年 / 10 年 / 全部。默认近 5 年</td></tr>
+<tr><td>切换主题</td><td>右上角按钮，深色 / 浅色切换。选择会记住，下次打开还是那个</td></tr>
+<tr><td>缩放图表</td><td>在图表上双指捏合（手机）或滚轮（电脑），也可以拖底部滑块</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="alert alert-info">
+  <b>数据口径说明</b>
+  国内油价用的是<b>省级零售基准价</b>（各省发改委公布的指导价），不是某个具体加油站的挂牌价。实际上加油站常有优惠，可能比这个数字便宜几毛。<br>
+  国际原油用的是布伦特和 WTI 期货价格，单位是美元/桶。
+</div>
+
+<!-- ============ 6 ============ -->
+<h2 id="s6"><span class="num">6</span>手机端怎么用：添加到主屏幕</h2>
+
+<p>先说结论：<strong>手机浏览器直接打开网址就能看，不需要装任何东西。</strong>但如果你想让体验更好，可以把它「添加到主屏幕」，之后就像打开一个 App 一样。</p>
+
+<h3>方式一：直接打开（最简单）</h3>
+<div class="urlbox">
+  <span class="lb">直接打开</span>
+  https://wangzhaolong616-byte.github.io/oil-price/
+</div>
+<p>建议把这个链接<b>发到微信的「文件传输助手」</b>，以后随时点开。或者存进浏览器书签。</p>
+
+<h3>方式二：添加到主屏幕（推荐）</h3>
+
+<div class="fig">
+<svg viewBox="0 0 1000 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="添加到主屏幕步骤图">
+  <!-- iPhone 流程 -->
+  <text x="30" y="30" font-size="14.5" font-weight="700" fill="#1F4E79">iPhone（用 Safari 浏览器）</text>
+
+  <!-- 步骤1 -->
+  <rect x="30" y="48" width="200" height="212" rx="14" fill="#fff" stroke="#E3E8EF" stroke-width="1.5"/>
+  <rect x="42" y="60" width="176" height="188" rx="9" fill="#F5F7FA"/>
+  <rect x="54" y="72" width="152" height="26" rx="5" fill="#fff" stroke="#E3E8EF"/>
+  <text x="66" y="89" font-size="10" fill="#1A2430" font-weight="700">中国油价趋势看板</text>
+  <rect x="54" y="106" width="152" height="52" rx="6" fill="#fff" stroke="#1F4E79"/>
+  <text x="66" y="122" font-size="9.5" fill="#8a94a3">下次调价窗口</text>
+  <text x="66" y="142" font-size="15" font-weight="700" fill="#1A2430">13 天后</text>
+  <rect x="54" y="166" width="152" height="40" rx="6" fill="#fff" stroke="#E3E8EF"/>
+  <text x="66" y="190" font-size="9.5" fill="#8a94a3">成品油零售价历史走势</text>
+  <!-- Safari 底栏 -->
+  <rect x="42" y="212" width="176" height="30" rx="0" fill="#E8ECF2"/>
+  <text x="66" y="232" font-size="10" fill="#8a94a3" text-anchor="middle">◀</text>
+  <text x="104" y="232" font-size="10" fill="#8a94a3" text-anchor="middle">▶</text>
+  <rect x="128" y="219" width="18" height="18" rx="4" fill="#1F4E79"/>
+  <text x="137" y="232" font-size="12" fill="#fff" text-anchor="middle" font-weight="700">↑</text>
+  <text x="166" y="232" font-size="10" fill="#8a94a3" text-anchor="middle">▤</text>
+  <text x="200" y="232" font-size="10" fill="#8a94a3" text-anchor="middle">⧉</text>
+  <circle cx="137" cy="228" r="17" fill="none" stroke="#C0392B" stroke-width="2.5" stroke-dasharray="4 3"/>
+  <text x="130" y="272" font-size="12" font-weight="700" fill="#C0392B" text-anchor="middle">① 点底部「分享」</text>
+  <text x="130" y="290" font-size="11" fill="#8a94a3" text-anchor="middle">方框 + 向上箭头那个</text>
+
+  <text x="252" y="160" font-size="20" fill="#B7791F" text-anchor="middle">→</text>
+
+  <!-- 步骤2 -->
+  <rect x="274" y="48" width="200" height="212" rx="14" fill="#fff" stroke="#E3E8EF" stroke-width="1.5"/>
+  <rect x="286" y="60" width="176" height="188" rx="9" fill="#F5F7FA"/>
+  <text x="298" y="84" font-size="11" font-weight="700" fill="#1A2430">分享菜单</text>
+  <rect x="298" y="96" width="152" height="24" rx="5" fill="#fff" stroke="#E3E8EF"/>
+  <text x="310" y="112" font-size="10" fill="#8a94a3">拷贝</text>
+  <rect x="298" y="126" width="152" height="24" rx="5" fill="#fff" stroke="#E3E8EF"/>
+  <text x="310" y="142" font-size="10" fill="#8a94a3">添加到书签</text>
+  <rect x="298" y="156" width="152" height="26" rx="5" fill="#EEF3FB" stroke="#1F4E79" stroke-width="2"/>
+  <rect x="306" y="164" width="12" height="12" rx="3" fill="#1F4E79"/>
+  <text x="326" y="174" font-size="10.5" fill="#1F4E79" font-weight="700">添加到主屏幕</text>
+  <rect x="298" y="188" width="152" height="24" rx="5" fill="#fff" stroke="#E3E8EF"/>
+  <text x="310" y="204" font-size="10" fill="#8a94a3">在页面上查找</text>
+  <text x="374" y="272" font-size="12" font-weight="700" fill="#C0392B" text-anchor="middle">② 往下滑，选「添加到主屏幕」</text>
+  <text x="374" y="290" font-size="11" fill="#8a94a3" text-anchor="middle">可能要往下滑一点才看得到</text>
+
+  <text x="496" y="160" font-size="20" fill="#B7791F" text-anchor="middle">→</text>
+
+  <!-- 步骤3 -->
+  <rect x="518" y="48" width="200" height="212" rx="14" fill="#fff" stroke="#E3E8EF" stroke-width="1.5"/>
+  <rect x="530" y="60" width="176" height="188" rx="9" fill="#F5F7FA"/>
+  <text x="542" y="84" font-size="11" font-weight="700" fill="#1A2430">添加到主屏幕</text>
+  <rect x="542" y="96" width="34" height="34" rx="9" fill="#101721" stroke="#26364a"/>
+  <polyline points="549,118 555,111 561,115 567,105" fill="none" stroke="#4a9eff" stroke-width="2"/>
+  <circle cx="567" cy="105" r="2.5" fill="#C0392B"/>
+  <text x="590" y="110" font-size="10.5" fill="#1A2430" font-weight="700">油价看板</text>
+  <text x="590" y="124" font-size="9.5" fill="#8a94a3">wangzhaolong616-byte…</text>
+  <rect x="542" y="146" width="152" height="26" rx="6" fill="#1F4E79"/>
+  <text x="618" y="163" font-size="11" fill="#fff" text-anchor="middle" font-weight="700">添加</text>
+  <rect x="542" y="180" width="152" height="26" rx="6" fill="#fff" stroke="#E3E8EF"/>
+  <text x="618" y="197" font-size="11" fill="#8a94a3" text-anchor="middle">取消</text>
+  <text x="618" y="272" font-size="12" font-weight="700" fill="#C0392B" text-anchor="middle">③ 点右上角「添加」</text>
+  <text x="618" y="290" font-size="11" fill="#8a94a3" text-anchor="middle">名字可以改，也可以不改</text>
+
+  <!-- 安卓流程 -->
+  <text x="754" y="30" font-size="14.5" font-weight="700" fill="#4A7C59">安卓（Chrome / Edge）</text>
+  <rect x="754" y="48" width="216" height="212" rx="14" fill="#fff" stroke="#E3E8EF" stroke-width="1.5"/>
+  <rect x="766" y="60" width="192" height="188" rx="9" fill="#F5F7FA"/>
+  <rect x="778" y="72" width="168" height="26" rx="5" fill="#fff" stroke="#E3E8EF"/>
+  <text x="790" y="89" font-size="10" fill="#1A2430" font-weight="700">中国油价趋势看板</text>
+  <circle cx="934" cy="85" r="9" fill="#E8ECF2"/>
+  <text x="934" y="89" font-size="10" fill="#595959" text-anchor="middle" font-weight="700">⋮</text>
+  <circle cx="934" cy="85" r="15" fill="none" stroke="#C0392B" stroke-width="2.5" stroke-dasharray="4 3"/>
+  <text x="862" y="112" font-size="11" fill="#C0392B" text-anchor="middle" font-weight="700">① 点右上角 ⋮ 菜单</text>
+
+  <rect x="778" y="128" width="168" height="106" rx="7" fill="#fff" stroke="#E3E8EF"/>
+  <rect x="786" y="138" width="152" height="22" rx="5" fill="#fff"/>
+  <text x="798" y="153" font-size="10" fill="#8a94a3">新建标签页</text>
+  <rect x="786" y="164" width="152" height="24" rx="5" fill="#E4EFE7" stroke="#4A7C59" stroke-width="2"/>
+  <rect x="794" y="172" width="12" height="12" rx="3" fill="#4A7C59"/>
+  <text x="814" y="183" font-size="10.5" fill="#4A7C59" font-weight="700">添加到主屏幕</text>
+  <rect x="786" y="194" width="152" height="22" rx="5" fill="#fff"/>
+  <text x="798" y="209" font-size="10" fill="#8a94a3">下载内容</text>
+  <text x="862" y="272" font-size="12" font-weight="700" fill="#C0392B" text-anchor="middle">② 选「添加到主屏幕」</text>
+  <text x="862" y="290" font-size="11" fill="#8a94a3" text-anchor="middle">部分机型显示为「安装应用」</text>
+</svg>
+<div class="note">两种手机的操作步骤。做完之后主屏幕上会多一个图标，点开就是<b>全屏显示，没有浏览器地址栏</b>，跟原生 App 几乎一样。</div>
+</div>
+
+<div class="alert alert-ok">
+  <b>已经帮你适配好了</b>
+  图标已经生成好了（深色底 + 三条油价曲线 + 红点），iPhone 的刘海屏/挖孔屏安全区也适配了，深色浅色主题会跟着系统自动切换。你只管点「添加」就行。
+</div>
+
+<h3>方式三：离线版（最保险）</h3>
+
+<p>如果你遇到网络不好、或者想在没有网的时候看，用这个：</p>
+
+<div class="urlbox">
+  <span class="lb">离线版</span>
+  https://wangzhaolong616-byte.github.io/oil-price/oil-price-offline.html
+</div>
+
+<p>它是个 <b>1.5 MB 的单文件</b>，图表库和全部数据都打包在里面了：</p>
+<ul>
+  <li>在手机上打开这个链接 → 用浏览器的「保存页面 / 下载」功能存到手机</li>
+  <li>或者把这个文件通过微信发给自己，存到「文件」里</li>
+  <li>之后<b>断网也能打开</b>，双击就行，不需要任何网络</li>
+</ul>
+
+<div class="alert alert-warn">
+  <b>离线版的数据是"打包那一刻"的</b>
+  它不会自己更新。想看最新数据还是要打开在线版。离线版适合当"快照"用——比如你想对比某个时间点的情况。
+</div>
+
+<h3>流量和性能</h3>
+<div class="tblwrap">
+<table>
+<thead><tr><th style="width:34%">项目</th><th>数据</th></tr></thead>
+<tbody>
+<tr><td>首次打开在线版</td><td>约 1.5 MB（其中图表库 1 MB，数据 0.5 MB）。4G 下 1~2 秒</td></tr>
+<tr><td>再次打开</td><td>浏览器有缓存，通常几百 KB 以内</td></tr>
+<tr><td>打开离线版</td><td>0 流量（文件已在本地）</td></tr>
+<tr><td>手机兼容性</td><td>iOS 13+ / 安卓 7+ 都正常。实测 iPhone 15 Pro、iPhone SE、主流安卓均无横向溢出</td></tr>
+</tbody>
+</table>
+</div>
+
+<!-- ============ 7 ============ -->
+<h2 id="s7"><span class="num">7</span>邮件提醒怎么配（可选）</h2>
+
+<div class="alert alert-warn">
+  <b>这步是可选的，不配也完全没问题</b>
+  看板照常每天更新，只是不发邮件。你随时想配再配。
+  <br><br>
+  <b>当前状态：</b>你已经提供了 QQ 邮箱授权码，还差<b>完整的邮箱地址</b>（形如 <code>xxxxx@qq.com</code>）。把地址告诉我，我就能一次配好。
+</div>
+
+<h3>配好之后你会收到什么</h3>
+
+<p>每天早上 9 点收到一封邮件，内容长这样：</p>
+
+<div class="card" style="background:#FAFBFD">
+  <p style="font-size:13.5px;color:#595959;margin:0 0 10px"><b>主题：</b>[油价日报] 浙江 预计下调 估算 -0.11 元/升 · 2026-09-25</p>
+  <p style="font-size:13.5px;color:#595959;line-height:2;margin:0">
+    本次调价：<br>
+    　· 92# 汽油　8.58 元/升　（+0.32）<br>
+    　· 95# 汽油　9.12 元/升　（+0.33）<br>
+    　· 89# 汽油　7.95 元/升　（+0.29）<br>
+    　· 0# 柴油　　8.28 元/升　（+0.33）<br>
+    <br>
+    下次调价窗口预测：<br>
+    　· 日期　　　2026-10-09（还有 13 天）<br>
+    　· 方向　　　预计下调<br>
+    　· 原油变化　-3.05%<br>
+    　· 估算幅度　-0.108 元/升
+  </p>
+</div>
+
+<h3>6 个 Secret 分别是什么</h3>
+
+<div class="tblwrap">
+<table>
+<thead><tr><th style="width:24%">名字</th><th style="width:30%">填什么</th><th>说明</th></tr></thead>
+<tbody>
+<tr><td><code>MAIL_SERVER</code></td><td><code>smtp.qq.com</code></td><td>QQ 邮箱的发信服务器地址</td></tr>
+<tr><td><code>MAIL_PORT</code></td><td><code>465</code></td><td>端口号，固定填 465</td></tr>
+<tr><td><code>MAIL_USERNAME</code></td><td>你的 QQ 邮箱地址</td><td>例如 <code>123456@qq.com</code></td></tr>
+<tr><td><code>MAIL_PASSWORD</code></td><td>你生成的授权码</td><td>16 位字母，<b>不是 QQ 登录密码</b></td></tr>
+<tr><td><code>MAIL_FROM</code></td><td>你的 QQ 邮箱地址</td><td>和 USERNAME 一样即可</td></tr>
+<tr><td><code>MAIL_TO</code></td><td>你想收到的邮箱</td><td>可以就是同一个邮箱（自己发给自己）</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="alert alert-info">
+  <b>「授权码」和「登录密码」有什么区别？</b>
+  QQ / 163 / Gmail 为了安全，不允许你把登录密码交给第三方程序。所以要在邮箱后台单独生成一串"授权码"，专门给程序发信用。<br>
+  它的作用相当于"只允许发邮件、不能登录邮箱"的受限密码。哪天不想要了，在邮箱后台删掉就行，不影响邮箱本身。
+</div>
+
+<h3>手动配置的步骤（如果你想自己弄）</h3>
+
+<div class="steps">
+  <div class="step"><div class="n"></div><div class="body">
+    <b>打开仓库的 Secrets 页面</b>
+    <p>在浏览器访问：<code>github.com/wangzhaolong616-byte/oil-price/settings/secrets/actions</code></p>
+  </div></div>
+  <div class="step"><div class="n"></div><div class="body">
+    <b>点绿色的「New repository secret」</b>
+    <p>在页面右上方</p>
+  </div></div>
+  <div class="step"><div class="n"></div><div class="body">
+    <b>填名字和值，点「Add secret」</b>
+    <p>Name 填 <code>MAIL_SERVER</code>，Secret 填 <code>smtp.qq.com</code></p>
+  </div></div>
+  <div class="step"><div class="n"></div><div class="body">
+    <b>重复 6 次</b>
+    <p>把上面表格里那 6 个依次加完</p>
+  </div></div>
+  <div class="step"><div class="n"></div><div class="body">
+    <b>测试</b>
+    <p>去 Actions 页面，点 <code>update-oil-price</code> → 右边「Run workflow」→ 绿色按钮。等 1 分钟，邮箱里应该就收到了</p>
+  </div></div>
+</div>
+
+<!-- ============ 8 ============ -->
+<h2 id="s8"><span class="num">8</span>日常维护：你其实什么都不用做</h2>
+
+<p>这是这个方案最大的好处——<span class="hl">部署完就忘了它</span>。</p>
+
+<div class="tblwrap">
+<table>
+<thead><tr><th style="width:32%">情况</th><th style="width:20%">你要做什么</th><th>为什么</th></tr></thead>
+<tbody>
+<tr><td>日常使用</td><td class="yes">打开网址看</td><td>就这样，没了</td></tr>
+<tr><td>油价调价了</td><td class="yes">不用做</td><td>当天自动抓取并更新</td></tr>
+<tr><td>国际油价大涨大跌</td><td class="yes">不用做</td><td>每天抓 3 次，实时报价也会补上</td></tr>
+<tr><td>你的电脑关机/换电脑</td><td class="yes">不用做</td><td>任务跑在 GitHub 服务器上</td></tr>
+<tr><td>几个月不管它</td><td class="yes">不用做</td><td>每次抓取都会产生提交记录，不会触发 GitHub 的"60 天不活跃暂停"策略</td></tr>
+<tr><td>GitHub 改版了</td><td class="mid">偶尔看一眼</td><td>建议每 1~2 个月去 Actions 页面瞄一眼有没有绿色勾</td></tr>
+<tr><td>数据源改接口了</td><td class="mid">告诉我</td><td>概率很低，真出问题日志会报错，我可以修</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>怎么判断它在正常运行</h3>
+
+<div class="steps">
+  <div class="step"><div class="n"></div><div class="body">
+    <b>打开 Actions 页面</b>
+    <p><code>github.com/wangzhaolong616-byte/oil-price/actions</code></p>
+  </div></div>
+  <div class="step"><div class="n"></div><div class="body">
+    <b>看有没有绿色的勾 ✓</b>
+    <p>有一排绿色的勾 = 一切正常。红色叉 ✗ = 有问题，点进去看日志，或者直接告诉我</p>
+  </div></div>
+  <div class="step"><div class="n"></div><div class="body">
+    <b>或者更简单：打开网页看更新时间</b>
+    <p>标题下面会写「数据更新 2026/9/26 11:46」，如果这个时间是今天的，就说明一切正常</p>
+  </div></div>
+</div>
+
+<div class="alert alert-ok">
+  <b>关于免费额度</b>
+  公开仓库的 GitHub Actions <b>完全免费、不限分钟数</b>。你的项目每天跑 3 次、每次约 1 分钟，一个月大约 90 分钟，远远在任何限制之内。GitHub Pages 托管也是免费的。<b>这个方案不会产生任何费用。</b>
+</div>
+
+<!-- ============ 9 ============ -->
+<h2 id="s9"><span class="num">9</span>出问题了怎么办（FAQ）</h2>
+
+<h3>Q1：网页打不开怎么办？</h3>
+<p>国内访问 <code>github.io</code> 大部分时候是通的（我实测直连 1.1 秒），但偶尔会抽风。按顺序试：</p>
+<ol>
+  <li><b>刷新几次</b>，或者换个网络（切 4G / 换 WiFi）</li>
+  <li><b>等一下再试</b>——通常是临时的网络抖动</li>
+  <li><b>用离线版</b>：如果你之前存过 <code>oil-price-offline.html</code>，那个永远能打开</li>
+  <li><b>告诉我</b>，我可以给项目加一个备用访问通道（比如 Cloudflare 镜像）</li>
+</ol>
+
+<h3>Q2：数据好像没更新？</h3>
+<p>先确认三件事：</p>
+<ol>
+  <li>看网页标题下面的「数据更新」时间，是不是今天</li>
+  <li>去 Actions 页面看有没有绿色勾</li>
+  <li>确认今天是不是调价日——<b>国内油价不是每天变的</b>，每 10 个工作日才调一次。非调价日价格本来就不变，只是国际原油曲线在动</li>
+</ol>
+
+<h3>Q3：预测准不准？</h3>
+<div class="alert alert-warn">
+  <b>请把预测当成"参考"而不是"结论"</b>
+  它的算法是：用最近 8 次调价的间隔天数中位数，推算下次窗口日期；再用最近 140 次历史调价数据，拟合出"国际原油变化 1% 对应国内调多少元"的系数，据此估算幅度。<br><br>
+  几个已知的偏差来源：<br>
+  · <b>节假日</b>：遇到春节等长假会顺延，可能差 1~2 天<br>
+  · <b>搁浅机制</b>：调价金额不足 50 元/吨时国家不调，这时候预测会说"可能搁浅"<br>
+  · <b>窗口刚开始时</b>：如果昨天刚调过价，本轮窗口才走 1 天，数据不够，预测会标注"参考值会随交易日累积修正"<br><br>
+  <b>最终一定以国家发改委的公告为准。</b>
+</div>
+
+<h3>Q4：我想改点东西怎么办？</h3>
+<div class="tblwrap">
+<table>
+<thead><tr><th style="width:30%">想改什么</th><th>怎么做</th></tr></thead>
+<tbody>
+<tr><td>默认显示哪个省</td><td>告诉我，改一行代码就行</td></tr>
+<tr><td>默认时间范围</td><td>告诉我</td></tr>
+<tr><td>更新频率（比如改成每天 1 次）</td><td>告诉我，改 workflow 里的 cron</td></tr>
+<tr><td>配色 / 字体 / 图表样式</td><td>告诉我，我改 <code>docs/index.html</code></td></tr>
+<tr><td>加新油品（比如 98#）</td><td>数据源里没有 98#，需要换数据源，可以评估</td></tr>
+<tr><td>改成你所在的区/县</td><td>数据源只到省级，做不到市级</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>Q5：如果哪天我不想用了，怎么删干净？</h3>
+<ol>
+  <li>打开 <code>github.com/wangzhaolong616-byte/oil-price/settings</code></li>
+  <li>滚到最下面，点 <b>Delete this repository</b></li>
+  <li>按提示输入仓库名确认</li>
+</ol>
+<p>删掉之后，网页、自动任务、数据全部消失，不会留下任何东西。</p>
+
+<h3>Q6：这个项目是你自己写的吗？</h3>
+<p>不是从零发明。GitHub 上有一个很接近的开源项目（<code>elephi/ChinaGasPriceWatch</code>）验证了"东方财富 API 这条链路可行"，还有个 <code>duhailong1/oil-price</code> 演示了单文件 HTML 的做法。我把这两条思路合起来，补上它们都缺的"定时自动运行"和"多源对账"，再做了手机适配。</p>
+<p>数据源是公开的（东方财富、新浪、腾讯、FRED），代码是 MIT 协议，你可以随便用。</p>
+
+<!-- ============ 10 ============ -->
+<h2 id="s10"><span class="num">10</span>安全提醒（有一条要处理）</h2>
+
+<div class="alert alert-danger">
+  <b>必做：撤销那个访问令牌</b>
+  你之前发给我的令牌（<code>ghp_</code> 开头那串）已经出现在聊天记录里了，建议撤销掉。<br><br>
+  <b>操作：</b>打开 <code>github.com/settings/tokens</code> → 找到备注是 <code>oil-price-bot</code> 的那一条 → 点右侧 <b>Delete</b><br><br>
+  <b>撤销后会怎样？</b><br>
+  · 网页看板 → <span class="yes">照常运行，完全不受影响</span><br>
+  · 每天自动更新 → <span class="yes">照常运行，完全不受影响</span><br>
+  · 邮件提醒 → <span class="yes">照常运行</span>（邮件用的是另一套凭据）<br>
+  · 唯一影响 → 以后如果要<b>在你电脑上手动改代码再上传</b>，需要重新登录一次<br><br>
+  <b>不急，你什么时候方便什么时候弄。</b>
+</div>
+
+<h3>邮箱授权码怎么保管</h3>
+<ul>
+  <li>授权码配进 GitHub Secrets 之后，<b>网页上再也看不到明文</b>，只有自动任务运行时能读到</li>
+  <li>它只能用来<b>发邮件</b>，不能登录你的邮箱、不能读你的邮件</li>
+  <li>如果哪天觉得不安全，去 QQ 邮箱后台把它删掉，再生成一个新的，然后告诉我更新一下就行</li>
+</ul>
+
+<h3>这个项目里有什么是"你的隐私"吗</h3>
+<div class="tblwrap">
+<table>
+<thead><tr><th style="width:34%">内容</th><th style="width:16%">公开吗</th><th>说明</th></tr></thead>
+<tbody>
+<tr><td>网页代码、数据</td><td class="mid">公开</td><td>任何人都能看，但里面没有你的任何个人信息</td></tr>
+<tr><td>GitHub 用户名</td><td class="mid">公开</td><td>会出现在网址里，这是 GitHub Pages 的机制</td></tr>
+<tr><td>你的邮箱地址</td><td class="yes">不公开</td><td>存在加密的 Secrets 里</td></tr>
+<tr><td>邮箱授权码</td><td class="yes">不公开</td><td>同上</td></tr>
+<tr><td>访问令牌</td><td class="yes">不公开</td><td>只在你电脑上，撤销后彻底消失</td></tr>
+</tbody>
+</table>
+</div>
+
+<!-- ============ 11 ============ -->
+<h2 id="s11"><span class="num">11</span>附录：数据源 / 参数速查</h2>
+
+<h3>数据来源清单</h3>
+<div class="tblwrap">
+<table>
+<thead><tr><th style="width:22%">用途</th><th style="width:26%">来源</th><th style="width:26%">覆盖范围</th><th>要 Key 吗</th></tr></thead>
+<tbody>
+<tr><td><b>国内成品油零售价</b></td><td>东方财富数据中心</td><td>31 省 × 4 种油品 × 303 次调价<br>2008-06-21 至今</td><td class="yes">不需要</td></tr>
+<tr><td><b>国际原油日线</b></td><td>新浪财经</td><td>WTI 1996 起 / 布伦特 2016 起</td><td class="yes">不需要</td></tr>
+<tr><td><b>原油实时报价</b></td><td>新浪 / 腾讯（双通道）</td><td>当日实时</td><td class="yes">不需要</td></tr>
+<tr><td><b>原油早期历史</b></td><td>FRED（美联储圣路易斯分行）</td><td>1986 年起</td><td class="yes">不需要</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="alert alert-info">
+  <b>为什么搞这么多个源？</b>
+  部署时实测发现：FRED 和国内源在历史上高度吻合（偏差 0.3%~1.5%），但 FRED <b>最近几天偶尔会出异常数据</b>——2026 年 9 月实测布伦特差了 20 美元。我用腾讯做第三方交叉验证，确认是国内源对的。<br><br>
+  所以脚本里做了一套<b>多源对账</b>：国内源为主，FRED 只用来补 2016 年前的历史（补之前还会自动做量级校准），实时报价两个通道互为备份。<b>任何一个源挂了，都不会影响你看到的曲线。</b>
+</div>
+
+<h3>关键参数速查</h3>
+<div class="tblwrap">
+<table>
+<thead><tr><th style="width:34%">项目</th><th>值</th></tr></thead>
+<tbody>
+<tr><td>数据总量</td><td>7,236 条原始记录 → 303 个调价日 × 31 省</td></tr>
+<tr><td>时间跨度</td><td>2008-06-21 ~ 今天</td></tr>
+<tr><td>数据文件大小</td><td>505 KB</td></tr>
+<tr><td>离线单文件大小</td><td>1.5 MB</td></tr>
+<tr><td>自动运行时间</td><td>每天 01:00 / 09:00 / 17:00（北京时间）</td></tr>
+<tr><td>单次运行耗时</td><td>约 60~90 秒</td></tr>
+<tr><td>单次网络请求数</td><td>增量约 6 次，全量约 20 次</td></tr>
+<tr><td>月均消耗</td><td>约 90 分钟 Actions 时长（公开仓库免费）</td></tr>
+<tr><td>预测拟合样本</td><td>最近 140 次历史调价</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>技术栈（了解一下就行）</h3>
+<div class="pills" style="margin-top:12px">
+  <span class="pill pill-b">Python 3 标准库（零依赖）</span>
+  <span class="pill pill-b">GitHub Actions（定时任务）</span>
+  <span class="pill pill-b">GitHub Pages（免费托管）</span>
+  <span class="pill pill-g">ECharts 5.5.1（图表）</span>
+  <span class="pill pill-g">原生 HTML/CSS/JS（无框架）</span>
+  <span class="pill pill-a">PWA（可添加到主屏幕）</span>
+  <span class="pill pill-gy">MIT 开源协议</span>
+</div>
+
+<div class="alert alert-ok" style="margin-top:26px">
+  <b>最后说一句</b>
+  有任何一个地方看不懂、或者想改什么，直接跟我说就行。不用自己研究。这个项目从设计到部署都是我做的，改起来很快。
+</div>
+
+<footer>
+  <b>中国油价趋势看板 · 使用手册</b>　版本 1.0　生成于 2026-09-26<br>
+  看板地址：https://wangzhaolong616-byte.github.io/oil-price/<br>
+  仓库地址：https://github.com/wangzhaolong616-byte/oil-price<br><br>
+  <b>免责声明：</b>本项目展示的油价数据来自公开渠道，仅供个人参考。调价窗口预测基于历史规律推算，<b>不构成任何投资建议</b>，最终价格以国家发展改革委公告及加油站实际挂牌价为准。
+</footer>
+
+</div>
+</body>
+</html>
