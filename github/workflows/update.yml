@@ -1,0 +1,113 @@
+name: update-oil-price
+
+on:
+  # 抓取频率的依据（不是拍脑袋定的）：
+  #   · 国内成品油：10 个工作日一调（近年实测间隔 13~17 自然日），且「调价日 24:00 生效」，
+  #     所以数据的最小变化间隔 ≈ 1 天，抓取间隔只要 < 1 天就绝不漏 —— 每天 1 次已有 13 倍冗余。
+  #   · 国际原油日线：每个交易日结算一次（伦敦/纽约结算 ≈ 北京 02:30 前后），早上抓正好拿到。
+  #   · 因此 2 次/天 = 「不漏」+「及时」，第 3 次没有任何增量信息。
+  # 分钟数刻意不用 0：GitHub 官方文档指出「整点（每小时第 0 分）是定时任务最拥堵的时段」，
+  #   错开到 23 分可显著降低被延迟触发（延迟可达数十分钟）的概率。
+  schedule:
+    # 北京时间 00:23 —— 调价 0 点生效，这一跑保证你早上打开就是最新价
+    - cron: "23 16 * * *"
+    # 北京时间 08:23 —— 原油日线已结算 + 发当日日报（一天唯一一封）
+    - cron: "23 0 * * *"
+  workflow_dispatch:
+    inputs:
+      full:
+        description: 强制全量重抓
+        type: boolean
+        default: false
+  push:
+    paths: [fetch_oil.py, .github/workflows/update.yml]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: oil-price-update
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Fetch oil price data
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.full }}" = "true" ]; then
+            python fetch_oil.py --full
+          else
+            python fetch_oil.py
+          fi
+
+      - name: Rebuild standalone offline HTML
+        run: python build_standalone.py
+
+      - name: Commit & push
+        run: |
+          git config user.name "oil-price-bot"
+          git config user.email "bot@users.noreply.github.com"
+          if git diff --quiet data/prices.json docs/prices.json docs/oil-price-offline.html 2>/dev/null; then
+            echo "无变化，跳过提交"
+            exit 0
+          fi
+          git add data/prices.json docs/prices.json docs/oil-price-offline.html
+          ts="$(date '+%Y-%m-%d %H:%M:%S %Z')"
+          git commit -m "auto: refresh oil price at $ts"
+
+          # 数据文件是"每次全量重新生成"的产物，且定时任务可能重叠、
+          # 也可能有人手动触发。直接 push 会遇到 non-fast-forward 被拒，
+          # 因此这里做「拉取 + 以本地为准合并 + 重试」。
+          for i in 1 2 3 4 5; do
+            if git push origin HEAD:main; then
+              echo "✓ 推送成功（第 $i 次尝试）"
+              exit 0
+            fi
+            echo "::warning::推送被拒，拉取远端后重试（第 $i 次）"
+            git fetch origin main || true
+            # -X ours：冲突时保留本地（即本次最新抓取结果）
+            git merge -X ours --no-edit origin/main || {
+              echo "::warning::合并异常，回退后强制以本地版本推送"
+              git merge --abort 2>/dev/null || true
+              git push --force-with-lease origin HEAD:main && exit 0
+            }
+            sleep 5
+          done
+          echo "::error::推送失败，已重试 5 次"
+          exit 1
+
+      # 只在「北京时间 08:23」那一次定时运行发信 —— 每天一封，且此时数据刚刷新过
+      - name: Send daily digest email (Beijing 08:23 run only)
+        if: |
+          (github.event_name == 'schedule' && github.event.schedule == '23 0 * * *')
+          || github.event_name == 'workflow_dispatch'
+        env:
+          MAIL_USERNAME:    ${{ secrets.MAIL_USERNAME }}
+          MAIL_PASSWORD:    ${{ secrets.MAIL_PASSWORD }}
+          MAIL_FROM:        ${{ secrets.MAIL_FROM }}
+          MAIL_TO:          ${{ secrets.MAIL_TO }}
+          MAIL_SERVER:      ${{ secrets.MAIL_SERVER }}
+          MAIL_PORT:        ${{ secrets.MAIL_PORT }}
+          DIGEST_TITLE:     油价日报
+          DIGEST_PROVINCE:  浙江
+        run: |
+          python mail_digest.py \
+            --province "$DIGEST_PROVINCE" \
+            --title "$DIGEST_TITLE" \
+            --to "$MAIL_TO" \
+            --from "$MAIL_FROM" \
+            --server "$MAIL_SERVER" \
+            --port "$MAIL_PORT" \
+            --user "$MAIL_USERNAME" \
+            --password "$MAIL_PASSWORD"
+          # 邮件发送失败不阻断数据更新（已在 mail_digest.py 内做 swallow）

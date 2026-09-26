@@ -167,8 +167,8 @@
     <span>部署日期 2026-09-26</span>
     <span>数据 2008 年至今</span>
     <span>31 省 × 4 种油品</span>
-    <span>每天自动更新 3 次</span>
-    <span>邮件日报 每天 9:00</span>
+    <span>每天自动更新 2 次</span>
+    <span>邮件日报 每天 8:23</span>
     <span>零维护</span>
   </div>
 </div>
@@ -216,7 +216,7 @@
 <div class="grid3">
   <div class="mini">
     <h4>① 它会自己更新</h4>
-    <p>每天凌晨 1 点、上午 9 点、下午 5 点，GitHub 的服务器自动去抓最新油价。你的电脑关着也照跑。</p>
+    <p>每天 0 点后和早上 8 点后各一次，GitHub 的服务器自动去抓最新油价。你的电脑关着也照跑。</p>
   </div>
   <div class="mini">
     <h4>② 你不用维护</h4>
@@ -231,7 +231,7 @@
 <div class="alert alert-warn">
   <b>你还有一件事要做</b>
   <strong>必做：</strong>去撤销那个访问令牌（见 <a href="#s10">第 10 章</a>），因为它已经出现在聊天记录里了。<br>
-  <strong>已完成：</strong>邮件提醒已经配好并测试通过（见 <a href="#s7">第 7 章</a>），每天上午 9 点会自动发一封到你邮箱。
+  <strong>已完成：</strong>邮件提醒已经配好并测试通过（见 <a href="#s7">第 7 章</a>），每天早上 8:23 左右会自动发一封到你邮箱。
 </div>
 
 <!-- ============ 2 ============ -->
@@ -279,8 +279,8 @@
 
   <rect x="42" y="208" width="176" height="62" rx="8" fill="#fff" stroke="#1F4E79" stroke-width="1.5"/>
   <text x="130" y="230" font-size="13" font-weight="700" fill="#1F4E79" text-anchor="middle">定时触发</text>
-  <text x="130" y="249" font-size="11.5" fill="#595959" text-anchor="middle">每天 01:00 / 09:00</text>
-  <text x="130" y="263" font-size="11.5" fill="#595959" text-anchor="middle">/ 17:00（北京时间）</text>
+  <text x="130" y="249" font-size="11.5" fill="#595959" text-anchor="middle">每天 00:23 / 08:23</text>
+  <text x="130" y="263" font-size="11.5" fill="#595959" text-anchor="middle">（北京时间）</text>
 
   <rect x="236" y="208" width="176" height="62" rx="8" fill="#fff" stroke="#1F4E79" stroke-width="1.5"/>
   <text x="324" y="230" font-size="13" font-weight="700" fill="#1F4E79" text-anchor="middle">抓取 + 对账</text>
@@ -323,30 +323,70 @@
 <h3>一天里它做了什么</h3>
 
 <div class="fig">
-<svg viewBox="0 0 1000 190" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="每日运行时间线">
-  <line x1="70" y1="96" x2="945" y2="96" stroke="#D9E2F3" stroke-width="5" stroke-linecap="round"/>
+<svg viewBox="0 0 1000 210" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="每日运行时间线">
+  <line x1="70" y1="106" x2="945" y2="106" stroke="#D9E2F3" stroke-width="5" stroke-linecap="round"/>
 
-  <circle cx="160" cy="96" r="11" fill="#1F4E79"/>
-  <text x="160" y="62" font-size="14" font-weight="700" fill="#1F4E79" text-anchor="middle">01:00</text>
-  <text x="160" y="130" font-size="12.5" fill="#595959" text-anchor="middle">抓一次</text>
-  <text x="160" y="148" font-size="11.5" fill="#8a94a3" text-anchor="middle">覆盖跨零点更新的调价</text>
+  <circle cx="210" cy="106" r="12" fill="#1F4E79"/>
+  <text x="210" y="70" font-size="15" font-weight="700" fill="#1F4E79" text-anchor="middle">00:23</text>
+  <text x="210" y="142" font-size="13" fill="#595959" text-anchor="middle">抓一次</text>
+  <text x="210" y="162" font-size="11.5" fill="#8a94a3" text-anchor="middle">调价 0 点生效，这一跑</text>
+  <text x="210" y="178" font-size="11.5" fill="#8a94a3" text-anchor="middle">保证你早上打开就是新价</text>
 
-  <circle cx="420" cy="96" r="11" fill="#1F4E79"/>
-  <text x="420" y="62" font-size="14" font-weight="700" fill="#1F4E79" text-anchor="middle">09:00</text>
-  <text x="420" y="130" font-size="12.5" fill="#595959" text-anchor="middle">抓一次 + 发邮件</text>
-  <text x="420" y="148" font-size="11.5" fill="#8a94a3" text-anchor="middle">当天唯一的一封日报</text>
+  <circle cx="530" cy="106" r="12" fill="#1F4E79"/>
+  <text x="530" y="70" font-size="15" font-weight="700" fill="#1F4E79" text-anchor="middle">08:23</text>
+  <text x="530" y="142" font-size="13" fill="#595959" text-anchor="middle">抓一次 + 发日报</text>
+  <text x="530" y="162" font-size="11.5" fill="#8a94a3" text-anchor="middle">欧美原油已收盘结算</text>
+  <text x="530" y="178" font-size="11.5" fill="#8a94a3" text-anchor="middle">当天唯一的一封邮件</text>
 
-  <circle cx="700" cy="96" r="11" fill="#1F4E79"/>
-  <text x="700" y="62" font-size="14" font-weight="700" fill="#1F4E79" text-anchor="middle">17:00</text>
-  <text x="700" y="130" font-size="12.5" fill="#595959" text-anchor="middle">抓一次</text>
-  <text x="700" y="148" font-size="11.5" fill="#8a94a3" text-anchor="middle">跟上国际油价当天的变化</text>
-
-  <circle cx="890" cy="96" r="9" fill="#4A7C59"/>
-  <text x="890" y="62" font-size="13.5" font-weight="700" fill="#4A7C59" text-anchor="middle">随时</text>
-  <text x="890" y="130" font-size="12.5" fill="#595959" text-anchor="middle">你打开网页</text>
-  <text x="890" y="148" font-size="11.5" fill="#8a94a3" text-anchor="middle">看到的就是最新的</text>
+  <circle cx="850" cy="106" r="10" fill="#4A7C59"/>
+  <text x="850" y="70" font-size="14" font-weight="700" fill="#4A7C59" text-anchor="middle">随时</text>
+  <text x="850" y="142" font-size="13" fill="#595959" text-anchor="middle">你打开网页</text>
+  <text x="850" y="162" font-size="11.5" fill="#8a94a3" text-anchor="middle">看到的是最近一次</text>
+  <text x="850" y="178" font-size="11.5" fill="#8a94a3" text-anchor="middle">抓取的结果</text>
 </svg>
-<div class="note">一天跑三次，覆盖了"调价发生在半夜""国际油价白天波动"这两种情况。你任何时候打开网页，看到的都是最近一次抓取的结果。</div>
+<div class="note">一天跑两次就够 —— <b>因为国内油价 10 个工作日才调一次，不是每天都变</b>。0 点后那次是为了及时，早上那次是为了让邮件里的数据最新。<br>原来跑三次，第三次（下午）其实拿不到任何新数据，所以已经去掉。</div>
+</div>
+
+<h3>为什么是「2 次」——频率是算出来的，不是拍脑袋</h3>
+
+<p>抓取频率只由一件事决定：<span class="hl">数据本身多久变一次</span>。抓得比数据变得还快，多出来的次数拿不到任何新信息。</p>
+
+<div class="tblwrap">
+<table>
+<thead><tr><th style="width:26%">数据</th><th style="width:26%">多久变一次</th><th>对抓取频率的要求</th></tr></thead>
+<tbody>
+<tr>
+  <td><b>国内 31 省零售价</b><br><span style="font-size:12px;color:#8a94a3">（核心数据）</span></td>
+  <td><b>10 个工作日一次</b><br>实测近年间隔 13~17 个自然日</td>
+  <td>这是全项目变得最慢的数据。<b>每天抓 1 次就有 13 倍冗余</b>，怎么抓都不可能漏</td>
+</tr>
+<tr>
+  <td><b>国际原油日线</b><br>（布伦特 / WTI）</td>
+  <td><b>每个交易日一次</b><br>伦敦/纽约结算 ≈ 北京 02:30</td>
+  <td>早上 8 点后抓正好拿到最新日线。凌晨抓只能拿到前一天的</td>
+</tr>
+<tr>
+  <td><b>国际原油实时报价</b></td>
+  <td>交易时段内连续变</td>
+  <td>纯展示用。抓再勤也只是让卡片上的数字新一点，<b>不影响任何结论</b></td>
+</tr>
+<tr>
+  <td><b>下次调价预测</b></td>
+  <td>随原油日线变</td>
+  <td>派生数据。原油日线一天只更新一次，所以预测也只需要一天更新一次</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+<div class="alert alert-info">
+  <b>结论</b>
+  数据里变得最快的是「原油日线」，一天一次。所以：<br>
+  · <b>1 次/天</b> = 保证不漏数据的<b>下限</b><br>
+  · <b>2 次/天</b> = 在"不漏"之上再加"及时" —— 0 点后那次让调价当天你就看到，早上那次让邮件里是最新数据<br>
+  · <b>3 次/天或更多</b> = 拿不到新信息，只是多消耗、多出错机会<br><br>
+  <b>另一个细节：为什么时间是 00:23 / 08:23 而不是 00:00 / 08:00？</b><br>
+  GitHub 官方文档写明：定时任务在<b>整点</b>（每小时第 0 分）最拥堵，容易被延迟触发，延迟可达几十分钟。所以刻意错开到 23 分，触发更准时。
 </div>
 
 <!-- ============ 3 ============ -->
@@ -422,7 +462,7 @@
   <td><code>mail_digest.py</code></td>
   <td><span class="pill pill-gy">源码</span></td>
   <td class="no">已配置好</td>
-  <td>生成并发送邮件日报（每天上午 9 点）</td>
+  <td>生成并发送邮件日报（每天上午 8:23）</td>
 </tr>
 <tr>
   <td><code>smoke_test.py</code></td>
@@ -499,7 +539,7 @@
 <tr>
   <td><strong>Actions</strong></td>
   <td>自动机器人。你告诉它"每天几点干什么"，它就照做</td>
-  <td>每天跑 3 次的 <code>update-oil-price</code> 任务</td>
+  <td>每天跑 2 次的 <code>update-oil-price</code> 任务</td>
 </tr>
 <tr>
   <td><strong>Pages</strong></td>
@@ -569,7 +609,7 @@
 
 <div class="alert alert-info">
   <b>仓库为什么必须是公开的？</b>
-  公开仓库用 GitHub Actions 是<b>完全免费、不限时长</b>的；私有仓库每月只有 2000 分钟免费额度。你这个项目每天跑 3 次、每次 1 分钟出头，一个月大概 100 分钟——即使私有也够用，但公开更省心，而且能让 Pages 免费托管。
+  公开仓库用 GitHub Actions 是<b>完全免费、不限时长</b>的；私有仓库每月只有 2000 分钟免费额度。你这个项目每天跑 2 次、每次 1 分钟出头，一个月大概 60 分钟——即使私有也够用，但公开更省心，而且能让 Pages 免费托管。
   <br><br>
   <b>公开会不会泄露隐私？</b>
   仓库里只有代码和公开的油价数据，没有任何你的个人信息。你的邮箱授权码存在加密的 Secrets 里，公开仓库也看不到。
@@ -922,7 +962,7 @@
 
 <div class="alert alert-ok">
   <b>已经配好了，你什么都不用做</b>
-  2026-09-26 已配置完成并测试通过，测试邮件已成功发出。<b>每天上午 9 点</b>会自动发一封到你邮箱 <code>467510506@qq.com</code>。
+  2026-09-26 已配置完成并测试通过，测试邮件已成功发出。<b>每天早上 8:23 左右</b>会自动发一封到你邮箱 <code>467510506@qq.com</code>。
   <br><br>
   <b>没收到怎么办？</b>先翻一下<b>垃圾邮件</b>文件夹（QQ 邮箱有时会把自动发送的邮件归到那里）。如果还是没收到，告诉我，我查运行日志。
   <br><br>
@@ -1024,7 +1064,7 @@
 <tbody>
 <tr><td>日常使用</td><td class="yes">打开网址看</td><td>就这样，没了</td></tr>
 <tr><td>油价调价了</td><td class="yes">不用做</td><td>当天自动抓取并更新</td></tr>
-<tr><td>国际油价大涨大跌</td><td class="yes">不用做</td><td>每天抓 3 次，实时报价也会补上</td></tr>
+<tr><td>国际油价大涨大跌</td><td class="yes">不用做</td><td>每天抓 2 次，实时报价也会补上</td></tr>
 <tr><td>你的电脑关机/换电脑</td><td class="yes">不用做</td><td>任务跑在 GitHub 服务器上</td></tr>
 <tr><td>几个月不管它</td><td class="yes">不用做</td><td>每次抓取都会产生提交记录，不会触发 GitHub 的"60 天不活跃暂停"策略</td></tr>
 <tr><td>GitHub 改版了</td><td class="mid">偶尔看一眼</td><td>建议每 1~2 个月去 Actions 页面瞄一眼有没有绿色勾</td></tr>
@@ -1079,7 +1119,7 @@
 
 <div class="alert alert-ok">
   <b>关于免费额度</b>
-  公开仓库的 GitHub Actions <b>完全免费、不限分钟数</b>。你的项目每天跑 3 次、每次约 1 分钟，一个月大约 90 分钟，远远在任何限制之内。GitHub Pages 托管也是免费的。<b>这个方案不会产生任何费用。</b>
+  公开仓库的 GitHub Actions <b>完全免费、不限分钟数</b>。你的项目每天跑 2 次、每次约 1 分钟，一个月大约 60 分钟，远远在任何限制之内。GitHub Pages 托管也是免费的。<b>这个方案不会产生任何费用。</b>
 </div>
 
 <!-- ============ 9 ============ -->
@@ -1212,10 +1252,10 @@
 <tr><td>时间跨度</td><td>2008-06-21 ~ 今天</td></tr>
 <tr><td>数据文件大小</td><td>505 KB</td></tr>
 <tr><td>离线单文件大小</td><td>1.5 MB</td></tr>
-<tr><td>自动运行时间</td><td>每天 01:00 / 09:00 / 17:00（北京时间）</td></tr>
+<tr><td>自动运行时间</td><td>每天 00:23 / 08:23（北京时间）</td></tr>
 <tr><td>单次运行耗时</td><td>约 60~90 秒</td></tr>
 <tr><td>单次网络请求数</td><td>增量约 6 次，全量约 20 次</td></tr>
-<tr><td>月均消耗</td><td>约 90 分钟 Actions 时长（公开仓库免费）</td></tr>
+<tr><td>月均消耗</td><td>约 60 分钟 Actions 时长（公开仓库免费）</td></tr>
 <tr><td>预测拟合样本</td><td>最近 140 次历史调价</td></tr>
 </tbody>
 </table>
