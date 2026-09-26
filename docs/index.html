@@ -17,6 +17,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>中国油价趋势看板</title>
+
+<!-- 手机「添加到主屏幕」支持 -->
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#0e1319" id="themeColorMeta">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="油价看板">
+<meta name="format-detection" content="telephone=no">
 <script src="vendor/echarts.min.js"></script>
 <!-- __EC_INLINE__ --><!-- __DATA_INLINE__ -->
 <style>
@@ -36,7 +47,13 @@
     font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;
     -webkit-font-smoothing:antialiased;
   }
-  .wrap{max-width:1280px;margin:0 auto;padding:20px 16px 60px}
+  /* 适配 iPhone 刘海 / 安卓挖孔屏安全区（添加到主屏幕后生效） */
+  .wrap{
+    max-width:1280px;margin:0 auto;
+    padding:calc(20px + env(safe-area-inset-top)) 16px calc(60px + env(safe-area-inset-bottom));
+    padding-left:max(16px, env(safe-area-inset-left));
+    padding-right:max(16px, env(safe-area-inset-right));
+  }
 
   /* ---------- 头部 ---------- */
   header{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:18px}
@@ -506,6 +523,9 @@ function renderAll(){
 
 function applyTheme(){
   document.documentElement.setAttribute('data-theme', state.theme);
+  // 同步状态栏颜色（添加到主屏幕后手机顶栏会跟着变）
+  const m = document.getElementById('themeColorMeta');
+  if (m) m.setAttribute('content', state.theme === 'dark' ? '#0e1319' : '#f4f6f9');
   try { localStorage.setItem('oil-theme', state.theme); } catch(e){}
 }
 

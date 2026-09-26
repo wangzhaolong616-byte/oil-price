@@ -57,6 +57,14 @@ def main() -> int:
         r'<script\s+src="vendor/echarts\.min\.js"[^>]*>\s*</script>',
         '', out_html, count=1)
 
+    # 离线单文件不应引用任何外部资源，去掉 PWA 相关引用（否则会 404）
+    for pat in (
+        r'<link\s+rel="manifest"[^>]*>\s*',
+        r'<link\s+rel="icon"[^>]*>\s*',
+        r'<link\s+rel="apple-touch-icon"[^>]*>\s*',
+    ):
+        out_html = re.sub(pat, '', out_html)
+
     # 顶部加身份说明，方便一眼认出这是离线版
     banner = (
         "<!--\n"
