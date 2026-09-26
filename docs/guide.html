@@ -574,6 +574,23 @@
   仓库里只有代码和公开的油价数据，没有任何你的个人信息。你的邮箱授权码存在加密的 Secrets 里，公开仓库也看不到。
 </div>
 
+<h3>想把整个项目存一份到自己电脑？</h3>
+<p>如果你想把全部文件（网页、源码、数据）打包下载下来留个备份，很简单：</p>
+<div class="steps">
+  <div class="step"><div class="n"></div><div class="body">
+    <b>打开仓库首页</b>
+    <p><code>github.com/wangzhaolong616-byte/oil-price</code></p>
+  </div></div>
+  <div class="step"><div class="n"></div><div class="body">
+    <b>点绿色的「Code」按钮</b>
+    <p>在文件列表右上方</p>
+  </div></div>
+  <div class="step"><div class="n"></div><div class="body">
+    <b>选最下面的「Download ZIP」</b>
+    <p>会下载一个压缩包，解压后就是完整项目。<b>这一步只是备份，不影响线上运行。</b></p>
+  </div></div>
+</div>
+
 <!-- ============ 5 ============ -->
 <h2 id="s5"><span class="num">5</span>网站怎么用：每个区域怎么看</h2>
 
@@ -1012,6 +1029,33 @@
     <b>或者更简单：打开网页看更新时间</b>
     <p>标题下面会写「数据更新 2026/9/26 11:46」，如果这个时间是今天的，就说明一切正常</p>
   </div></div>
+</div>
+
+<h3>想让数据「立刻」更新一次</h3>
+<p>正常情况下不用管。但如果你刚看到油价调价的消息、想马上在网页上看到，可以手动踢一脚：</p>
+
+<div class="steps">
+  <div class="step"><div class="n"></div><div class="body">
+    <b>打开 Actions 页面</b>
+    <p><code>github.com/wangzhaolong616-byte/oil-price/actions</code></p>
+  </div></div>
+  <div class="step"><div class="n"></div><div class="body">
+    <b>左侧点「update-oil-price」</b>
+    <p>就是那个定时任务的名字</p>
+  </div></div>
+  <div class="step"><div class="n"></div><div class="body">
+    <b>右边点「Run workflow」→ 绿色按钮</b>
+    <p>弹窗里有个 <b>「强制全量重抓」</b> 的勾选框，<b>平时不要勾</b>（增量抓取更快）。只有怀疑数据有问题、想彻底重来时才勾</p>
+  </div></div>
+  <div class="step"><div class="n"></div><div class="body">
+    <b>等 1 分钟左右</b>
+    <p>刷新网页就能看到最新数据。刷新页面时如果没变，按一下 <b>Ctrl+F5</b>（手机上是清一下缓存或换个标签页重开）</p>
+  </div></div>
+</div>
+
+<div class="alert alert-info">
+  <b>小提示</b>
+  这个手动操作<b>不会影响</b>原本的定时计划。定时任务该跑还是会跑，只是多跑了一次而已。
 </div>
 
 <div class="alert alert-ok">
