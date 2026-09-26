@@ -1,0 +1,91 @@
+name: verify-site
+
+# 哨兵任务：确认「你在线看到的」== 「仓库里最新的代码和数据」。
+# 依赖我自觉是不可靠的，所以让 GitHub 每天自己查一遍；一旦不一致就报错，
+# 报错会触发 GitHub 给仓库所有者发邮件 —— 这就是不用你操心的兜底。
+#
+# 为什么是北京 10:23：数据任务在 08:23 跑，提交后 Pages 还要 1~3 分钟构建，
+# 留足 2 小时余量，避免把「正在构建」误判成「不一致」。
+
+on:
+  schedule:
+    # 北京时间 10:23（UTC = 北京 - 8h）
+    - cron: "23 2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Checkout（拿到仓库里最新一份数据作为基准）
+        uses: actions/checkout@v4
+
+      - name: 检查线上页面可访问
+        run: |
+          base="https://wangzhaolong616-byte.github.io/oil-price"
+          fail=0
+          for f in "" "guide.html" "oil-price-offline.html" "prices.json" \
+                   "manifest.webmanifest" "icon-192.png" "icon-512.png" \
+                   "apple-touch-icon.png" "vendor/echarts.min.js"; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 --retry 3 \
+                   "$base/$f?t=$(date +%s)")
+            if [ "$code" = "200" ]; then
+              echo "  ✓ $code  /$f"
+            else
+              echo "::error::线上 /$f 返回 $code（应为 200）"
+              fail=1
+            fi
+          done
+          [ "$fail" = "0" ] || exit 1
+
+      - name: 检查线上数据 == 仓库最新数据
+        run: |
+          base="https://wangzhaolong616-byte.github.io/oil-price"
+          # 两次比对，中间等 90 秒：排除「刚好在 Pages 构建中」造成的假报警
+          for attempt in 1 2; do
+            curl -s --max-time 40 --retry 3 "$base/prices.json?t=$(date +%s)" -o /tmp/live.json
+            live_sha=$(sha256sum /tmp/live.json | cut -d' ' -f1)
+            repo_sha=$(sha256sum docs/prices.json | cut -d' ' -f1)
+            echo "第 $attempt 次: live=${live_sha:0:12}  repo=${repo_sha:0:12}"
+            if [ "$live_sha" = "$repo_sha" ]; then
+              echo "✓ 线上数据与仓库最新提交完全一致"
+              exit 0
+            fi
+            # 注意：不要写 `[ x ] && sleep` —— set -e 下这种 AND 列表返回非 0 会误退出
+            if [ "$attempt" = "1" ]; then
+              sleep 90
+            fi
+          done
+          echo "::error::线上 prices.json 与仓库最新提交不一致 —— Pages 可能构建失败或未部署"
+          echo "--- 线上数据元信息 ---"
+          head -c 400 /tmp/live.json || true
+          exit 1
+
+      - name: 检查线上数据新鲜度
+        run: |
+          curl -s --max-time 40 --retry 3 \
+            "https://wangzhaolong616-byte.github.io/oil-price/prices.json?t=$(date +%s)" -o /tmp/live.json
+          python3 - <<'PY'
+          import json, sys
+          from datetime import datetime, timezone, timedelta
+          CST = timezone(timedelta(hours=8))
+          d = json.load(open("/tmp/live.json", encoding="utf-8"))
+          m = d["meta"]
+          raw = m["updated_at"].replace("Z", "+00:00")
+          ts = datetime.fromisoformat(raw)
+          if ts.tzinfo is None:
+              ts = ts.replace(tzinfo=CST)
+          age = datetime.now(CST) - ts.astimezone(CST)
+          hours = age.total_seconds() / 3600
+          print(f"线上数据时间: {ts.astimezone(CST):%Y-%m-%d %H:%M}（{hours:.1f} 小时前）")
+          print(f"覆盖: {m['province_count']} 省 · {m['adjust_count']} 次调价 · {m['date_from']} ~ {m['date_to']}")
+          # 一天跑 2 次，正常不超过 13 小时；给到 30 小时容错（比如 GitHub 大面积故障）
+          if hours > 30:
+              print(f"::error::线上数据已 {hours:.0f} 小时未更新，超过 30 小时阈值")
+              sys.exit(1)
+          print("✓ 数据新鲜度正常")
+          PY
