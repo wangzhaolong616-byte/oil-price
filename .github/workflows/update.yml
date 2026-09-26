@@ -57,10 +57,33 @@ jobs:
           git add data/prices.json docs/prices.json docs/oil-price-offline.html
           ts="$(date '+%Y-%m-%d %H:%M:%S %Z')"
           git commit -m "auto: refresh oil price at $ts"
-          git push
 
+          # 数据文件是"每次全量重新生成"的产物，且定时任务可能重叠、
+          # 也可能有人手动触发。直接 push 会遇到 non-fast-forward 被拒，
+          # 因此这里做「拉取 + 以本地为准合并 + 重试」。
+          for i in 1 2 3 4 5; do
+            if git push origin HEAD:main; then
+              echo "✓ 推送成功（第 $i 次尝试）"
+              exit 0
+            fi
+            echo "::warning::推送被拒，拉取远端后重试（第 $i 次）"
+            git fetch origin main || true
+            # -X ours：冲突时保留本地（即本次最新抓取结果）
+            git merge -X ours --no-edit origin/main || {
+              echo "::warning::合并异常，回退后强制以本地版本推送"
+              git merge --abort 2>/dev/null || true
+              git push --force-with-lease origin HEAD:main && exit 0
+            }
+            sleep 5
+          done
+          echo "::error::推送失败，已重试 5 次"
+          exit 1
+
+      # 只在「北京时间 09:00」那一次定时运行发信，避免一天收到 3 封
       - name: Send daily digest email (Beijing 09:00 run only)
-        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        if: |
+          (github.event_name == 'schedule' && github.event.schedule == '0 1 * * *')
+          || github.event_name == 'workflow_dispatch'
         env:
           MAIL_USERNAME:    ${{ secrets.MAIL_USERNAME }}
           MAIL_PASSWORD:    ${{ secrets.MAIL_PASSWORD }}
