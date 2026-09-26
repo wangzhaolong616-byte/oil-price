@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+*.pyo
+*.swp
+.DS_Store
+
+# 临时文件（smoke test 截图保留可作 README 示例）
+docs/_smoke_light.png

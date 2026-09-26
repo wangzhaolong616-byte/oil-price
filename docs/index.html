@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  中国油价趋势看板 · 在线版（docs/index.html）
+  ------------------------------------------------------------
+  这是 GitHub Pages 托管的主页面。
+  数据由同目录的 docs/prices.json 提供，由 GitHub Actions 每天自动更新。
+
+  另有「离线版」：docs/oil-price-offline.html
+  （ECharts 与数据全内嵌，1.5 MB，双击即可打开，无需联网）
+
+  数据来源：东方财富数据中心 / 新浪财经 / 腾讯证券 / FRED
+  ============================================================
+-->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>中国油价趋势看板</title>
+<script src="vendor/echarts.min.js"></script>
+<!-- __EC_INLINE__ --><!-- __DATA_INLINE__ -->
+<style>
+  :root{
+    --bg:#0e1319; --panel:#161d26; --panel2:#1b2430; --border:#2a3543;
+    --text:#e6edf3; --muted:#8b98a9; --accent:#4a9eff;
+    --up:#e5484d; --down:#30a46c; --shadow:0 2px 12px rgba(0,0,0,.35);
+  }
+  html[data-theme="light"]{
+    --bg:#f4f6f9; --panel:#ffffff; --panel2:#f0f4f8; --border:#dfe5ec;
+    --text:#16202c; --muted:#64748b; --accent:#2563eb;
+    --up:#d92626; --down:#128a52; --shadow:0 2px 12px rgba(15,23,42,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--text); min-height:100vh;
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1280px;margin:0 auto;padding:20px 16px 60px}
+
+  /* ---------- 头部 ---------- */
+  header{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+  h1{font-size:22px;font-weight:650;letter-spacing:.5px;display:flex;align-items:center;gap:9px}
+  h1 .dot{width:9px;height:9px;border-radius:50%;background:var(--up);box-shadow:0 0 10px var(--up)}
+  .sub{font-size:12.5px;color:var(--muted);margin-top:5px;line-height:1.7}
+  .btn{
+    background:var(--panel2);color:var(--text);border:1px solid var(--border);
+    border-radius:8px;padding:7px 13px;font-size:12.5px;cursor:pointer;transition:.15s;
+  }
+  .btn:hover{border-color:var(--accent);color:var(--accent)}
+
+  /* ---------- 卡片 ---------- */
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(258px,1fr));gap:12px;margin-bottom:16px}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;box-shadow:var(--shadow)}
+  .card.hl{border-color:var(--accent);background:linear-gradient(160deg,var(--panel),var(--panel2))}
+  .card h3{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.6px;margin-bottom:10px;text-transform:uppercase}
+  .big{font-size:27px;font-weight:680;line-height:1.15;letter-spacing:-.5px}
+  .big small{font-size:14px;font-weight:500;color:var(--muted);margin-left:3px}
+  .row{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+  .tag{font-size:11.5px;padding:2.5px 9px;border-radius:20px;font-weight:600;white-space:nowrap}
+  .tag.up{background:rgba(229,72,77,.14);color:var(--up)}
+  .tag.down{background:rgba(48,164,108,.14);color:var(--down)}
+  .tag.flat{background:rgba(139,152,169,.16);color:var(--muted)}
+  .tag.info{background:rgba(74,158,255,.14);color:var(--accent)}
+  .note{font-size:11.5px;color:var(--muted);margin-top:9px;line-height:1.6}
+
+  .bar{height:6px;background:var(--panel2);border-radius:4px;overflow:hidden;margin:11px 0 7px;border:1px solid var(--border)}
+  .bar > i{display:block;height:100%;background:var(--accent);border-radius:4px;transition:width .5s}
+
+  /* ---------- 控件 ---------- */
+  .ctrl{
+    background:var(--panel);border:1px solid var(--border);border-radius:12px;
+    padding:13px 15px;margin-bottom:16px;display:flex;gap:18px;flex-wrap:wrap;align-items:center;
+    box-shadow:var(--shadow);
+  }
+  .ctrl .grp{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .ctrl label{font-size:12.5px;color:var(--muted);font-weight:600}
+  select{
+    background:var(--panel2);color:var(--text);border:1px solid var(--border);
+    border-radius:8px;padding:6px 10px;font-size:13px;cursor:pointer;outline:none;
+  }
+  select:focus{border-color:var(--accent)}
+  .chips{display:flex;gap:6px;flex-wrap:wrap}
+  .chip{
+    padding:5px 12px;border-radius:8px;border:1px solid var(--border);background:var(--panel2);
+    font-size:12.5px;cursor:pointer;user-select:none;transition:.15s;color:var(--muted);
+  }
+  .chip.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+  .chip.on.t92{background:#4a9eff;border-color:#4a9eff}
+  .chip.on.t95{background:#c98a2b;border-color:#c98a2b}
+  .chip.on.t89{background:#8b7fd4;border-color:#8b7fd4}
+  .chip.on.t0{background:#3f8f63;border-color:#3f8f63}
+
+  /* ---------- 图表 ---------- */
+  .sec{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:var(--shadow)}
+  .sec h2{font-size:15px;font-weight:650;margin-bottom:3px}
+  .sec .desc{font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.6}
+  .chart{width:100%;height:380px}
+  .chart.tall{height:420px}
+
+  /* ---------- 表格 ---------- */
+  .tblwrap{overflow-x:auto;border-radius:9px;border:1px solid var(--border)}
+  table{width:100%;border-collapse:collapse;font-size:13px;min-width:560px}
+  th,td{padding:9px 12px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--border)}
+  th{background:var(--panel2);color:var(--muted);font-weight:600;font-size:12px;position:sticky;top:0}
+  th:first-child,td:first-child{text-align:left}
+  tbody tr:hover{background:var(--panel2)}
+  tbody tr.sel{background:rgba(74,158,255,.10);font-weight:600}
+  tbody tr:last-child td{border-bottom:none}
+  .num{font-variant-numeric:tabular-nums}
+  .up{color:var(--up)} .down{color:var(--down)} .muted{color:var(--muted)}
+
+  footer{margin-top:22px;font-size:11.5px;color:var(--muted);line-height:1.9}
+  footer a{color:var(--accent);text-decoration:none}
+  footer a:hover{text-decoration:underline}
+  .err{padding:40px 20px;text-align:center;color:var(--muted);font-size:14px;line-height:2}
+  @media(max-width:640px){
+    .wrap{padding:14px 11px 40px}
+    h1{font-size:19px}
+    .big{font-size:23px}
+    .chart{height:310px}
+    .chart.tall{height:340px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <h1><span class="dot"></span>中国油价趋势看板</h1>
+      <div class="sub" id="sub">加载中…</div>
+    </div>
+    <button class="btn" id="themeBtn">切换主题</button>
+  </header>
+
+  <!-- 概览卡片 -->
+  <div class="cards" id="cards"></div>
+
+  <!-- 控件 -->
+  <div class="ctrl">
+    <div class="grp">
+      <label>地区</label>
+      <select id="provSel"></select>
+    </div>
+    <div class="grp">
+      <label>油品</label>
+      <div class="chips" id="typeChips"></div>
+    </div>
+    <div class="grp">
+      <label>时间</label>
+      <div class="chips" id="rangeChips"></div>
+    </div>
+  </div>
+
+  <!-- 图1 -->
+  <div class="sec">
+    <h2>成品油零售价历史走势</h2>
+    <div class="desc" id="desc1">—</div>
+    <div class="chart" id="chart1"></div>
+  </div>
+
+  <!-- 图2 -->
+  <div class="sec">
+    <h2>国内油价 与 国际原油 对照</h2>
+    <div class="desc">左轴为国内零售价（元/升，阶梯线——调价后保持不变），右轴为国际原油（美元/桶，日线）。可以直观看到国际油价向国内传导的滞后：国际先行，国内每 10 个工作日跟一次。</div>
+    <div class="chart tall" id="chart2"></div>
+  </div>
+
+  <!-- 图3 -->
+  <div class="sec">
+    <h2>历次调价幅度</h2>
+    <div class="desc" id="desc3">—</div>
+    <div class="chart" id="chart3"></div>
+  </div>
+
+  <!-- 表 -->
+  <div class="sec">
+    <h2>全国 31 省最新油价</h2>
+    <div class="desc" id="descTable">—</div>
+    <div class="tblwrap"><table id="tbl"></table></div>
+  </div>
+
+  <footer id="foot"></footer>
+</div>
+
+<script>
+/* ============================================================
+   中国油价趋势看板
+   数据来自 data/prices.json（由 fetch_oil.py 每日自动更新）
+   若页面内已内嵌 window.__OIL_DATA__ 则直接使用（离线单文件版）
+   ============================================================ */
+
+const COLORS = { '92':'#4a9eff', '95':'#c98a2b', '89':'#8b7fd4', '0':'#3f8f63' };
+const LABELS = { '92':'92# 汽油', '95':'95# 汽油', '89':'89# 汽油', '0':'0# 柴油' };
+const RANGES = [
+  { key:'1y',  label:'近1年',   months:12 },
+  { key:'3y',  label:'近3年',   months:36 },
+  { key:'5y',  label:'近5年',   months:60 },
+  { key:'10y', label:'近10年',  months:120 },
+  { key:'all', label:'全部',    months:0 },
+];
+
+let DATA = null;
+let state = { prov:'', types:['92','95','0'], range:'5y', theme:'dark' };
+let charts = {};
+
+/* ---------- 工具 ---------- */
+const $ = id => document.getElementById(id);
+const fmt = (v, d=2) => (v === null || v === undefined || v === '') ? '—' : Number(v).toFixed(d);
+const sign = v => (v > 0 ? '+' : '') + Number(v).toFixed(2);
+const cls  = v => (v > 0 ? 'up' : (v < 0 ? 'down' : 'muted'));
+const dirTag = d => {
+  if (!d) return '';
+  if (d.indexOf('上调') >= 0)   return '<span class="tag up">预计上调</span>';
+  if (d.indexOf('下调') >= 0)   return '<span class="tag down">预计下调</span>';
+  if (d.indexOf('搁浅') >= 0)   return '<span class="tag flat">可能搁浅</span>';
+  return '<span class="tag info">' + d + '</span>';
+};
+function themeColors(){
+  const dark = state.theme === 'dark';
+  return {
+    text:   dark ? '#e6edf3' : '#16202c',
+    muted:  dark ? '#8b98a9' : '#64748b',
+    border: dark ? '#2a3543' : '#dfe5ec',
+    split:  dark ? '#212c38' : '#eef2f6',
+    panel:  dark ? '#161d26' : '#ffffff',
+    // ECharts 走 canvas，必须给真实色值，不能用 CSS 变量
+    up:     dark ? '#e5484d' : '#d92626',
+    down:   dark ? '#30a46c' : '#128a52',
+  };
+}
+function addMonths(iso, m){
+  const d = new Date(iso + 'T00:00:00');
+  d.setMonth(d.getMonth() - m);
+  return d.toISOString().slice(0,10);
+}
+
+/* ---------- 载入数据 ---------- */
+async function loadData(){
+  if (window.__OIL_DATA__) return window.__OIL_DATA__;
+  const res = await fetch('prices.json?t=' + Date.now(), { cache:'no-store' });
+  if (!res.ok) throw new Error('prices.json 加载失败（HTTP ' + res.status + '）');
+  return await res.json();
+}
+
+/* ---------- 区间切片 ---------- */
+function slice(){
+  const r = RANGES.find(x => x.key === state.range);
+  const dates = DATA.dates;
+  let start = 0;
+  if (r.months > 0){
+    const from = addMonths(dates[dates.length-1], r.months);
+    start = Math.max(0, dates.findIndex(d => d >= from));
+  }
+  return { start, dates: dates.slice(start) };
+}
+
+/* ---------- 概览卡片 ---------- */
+function renderCards(){
+  const m = DATA.meta, nx = DATA.next || {}, rt = DATA.realtime || {};
+  const prov = state.prov;
+  const pd = DATA.provinces_data[prov];
+  const i = DATA.dates.length - 1;
+  const cur = {}, dlt = {};
+  ['92','95','89','0'].forEach(k => { cur[k] = pd[k][i]; dlt[k] = pd['d'+k][i]; });
+
+  const progress = Math.round((nx.progress || 0) * 100);
+  const est = nx.est_delta_92;
+
+  let html = '';
+
+  // 下次调价
+  html += `<div class="card hl">
+    <h3>下次调价窗口</h3>
+    <div class="big">${fmt(nx.days_left,0)} <small>天后</small></div>
+    <div class="row" style="margin-top:7px">
+      <span style="font-size:13px;color:var(--muted)">${nx.date || '—'}</span>
+      ${dirTag(nx.direction)}
+    </div>
+    <div class="bar"><i style="width:${progress}%"></i></div>
+    <div class="note">本轮窗口已走 ${nx.elapsed_days || 0} / ${nx.window_days || 14} 天
+      ${nx.crude_pct != null ? '· 原油变化 ' + (nx.crude_pct>0?'+':'') + nx.crude_pct + '%' : ''}
+      ${est != null ? '· 估算 <b class="' + cls(est) + '">' + sign(est) + '</b> 元/升' : ''}
+    </div>
+    <div class="note" style="opacity:.8">${nx.reason || ''}</div>
+  </div>`;
+
+  // 当前油价
+  html += `<div class="card">
+    <h3>${prov} · 最新零售价</h3>
+    <div class="big">${fmt(cur['92'])} <small>元/升 · 92#</small></div>
+    <div class="row" style="margin-top:10px;gap:6px">
+      <span class="tag ${cls(dlt['92'])}" style="background:none;padding-left:0">92# ${dlt['92']!=null?sign(dlt['92']):'—'}</span>
+      <span class="tag ${cls(dlt['95'])}" style="background:none">95# ${dlt['95']!=null?sign(dlt['95']):'—'}</span>
+      <span class="tag ${cls(dlt['0'])}"  style="background:none">0# ${dlt['0']!=null?sign(dlt['0']):'—'}</span>
+    </div>
+    <div class="note">生效日 ${DATA.dates[i]}　·
+      <span class="${cls(dlt['92'])}">${dlt['92']>0?'上调':(dlt['92']<0?'下调':'未调')}</span>
+    </div>
+  </div>`;
+
+  // 国际原油
+  html += `<div class="card">
+    <h3>国际原油（实时）</h3>
+    <div class="big">${fmt(rt.brent)} <small>美元/桶 · 布伦特</small></div>
+    <div class="note" style="margin-top:9px">
+      WTI ${fmt(rt.wti)} 美元/桶<br>
+      报价时间 ${rt.ts || '—'}
+    </div>
+  </div>`;
+
+  $('cards').innerHTML = html;
+
+  const up = new Date(m.updated_at);
+  $('sub').innerHTML =
+    `数据更新 ${up.toLocaleString('zh-CN',{hour12:false})}　·　覆盖 ${m.province_count} 省 `
+    + `${m.date_from} 至 ${m.date_to}，共 ${m.adjust_count} 次调价`;
+}
+
+/* ---------- 控件 ---------- */
+function renderControls(){
+  const sel = $('provSel');
+  sel.innerHTML = DATA.provinces.map(p =>
+    `<option value="${p}"${p===state.prov?' selected':''}>${p}</option>`).join('');
+  sel.onchange = e => { state.prov = e.target.value; renderAll(); };
+
+  $('typeChips').innerHTML = ['92','95','89','0'].map(k =>
+    `<span class="chip t${k}${state.types.includes(k)?' on':''}" data-k="${k}">${LABELS[k]}</span>`).join('');
+  $('typeChips').querySelectorAll('.chip').forEach(c => {
+    c.onclick = () => {
+      const k = c.dataset.k;
+      const i = state.types.indexOf(k);
+      if (i >= 0){ if (state.types.length > 1) state.types.splice(i,1); }
+      else state.types.push(k);
+      renderControls(); renderAll();
+    };
+  });
+
+  $('rangeChips').innerHTML = RANGES.map(r =>
+    `<span class="chip${state.range===r.key?' on':''}" data-r="${r.key}">${r.label}</span>`).join('');
+  $('rangeChips').querySelectorAll('.chip').forEach(c => {
+    c.onclick = () => { state.range = c.dataset.r; renderControls(); renderAll(); };
+  });
+}
+
+/* ---------- 图1：历史走势 ---------- */
+function renderChart1(){
+  const tc = themeColors(), s = slice(), pd = DATA.provinces_data[state.prov];
+  const series = state.types.map(k => ({
+    name: LABELS[k], type:'line', smooth:0.15, symbol:'none',
+    lineStyle:{ width:2, color:COLORS[k] }, itemStyle:{ color:COLORS[k] },
+    data: pd[k].slice(s.start),
+    emphasis:{ focus:'series' },
+  }));
+  const first = {}, last = {};
+  state.types.forEach(k => {
+    const arr = pd[k].slice(s.start).filter(v => v != null);
+    first[k] = arr[0]; last[k] = arr[arr.length-1];
+  });
+  const parts = state.types.map(k => {
+    if (first[k] == null || last[k] == null) return LABELS[k] + ' —';
+    const d = last[k] - first[k];
+    return `${LABELS[k]} <b class="${cls(d)}">${sign(d)}</b> 元/升`;
+  });
+  $('desc1').innerHTML = `${state.prov} · ${s.dates[0]} 至 ${s.dates[s.dates.length-1]}　|　${parts.join('　·　')}`;
+
+  setOption('chart1', {
+    tooltip:{ trigger:'axis', backgroundColor:tc.panel, borderColor:tc.border, textStyle:{color:tc.text},
+      axisPointer:{ type:'line' } },
+    legend:{ data:state.types.map(k=>LABELS[k]), textStyle:{color:tc.muted}, top:0, itemGap:16 },
+    grid:{ left:52, right:18, top:38, bottom:56 },
+    xAxis:{ type:'category', data:s.dates, boundaryGap:false,
+      axisLine:{lineStyle:{color:tc.border}}, axisLabel:{color:tc.muted,fontSize:11},
+      axisTick:{show:false} },
+    yAxis:{ type:'value', name:'元/升', nameTextStyle:{color:tc.muted,fontSize:11},
+      scale:true, splitLine:{lineStyle:{color:tc.split}}, axisLabel:{color:tc.muted,fontSize:11} },
+    dataZoom:[{ type:'inside' },{ type:'slider', height:18, bottom:14,
+      borderColor:tc.border, textStyle:{color:tc.muted}, handleStyle:{color:tc.muted} }],
+    series,
+  });
+}
+
+/* ---------- 图2：国际对照 ---------- */
+function renderChart2(){
+  const tc = themeColors(), s = slice();
+  const pd = DATA.provinces_data[state.prov];
+  const crude = DATA.crude;
+
+  // 以日线为轴：国内价格按调价日向前填充（阶梯）
+  const from = s.dates[0];
+  let ci = 0;
+  while (ci < crude.dates.length && crude.dates[ci] < from) ci++;
+  const axis = crude.dates.slice(ci);
+  const bren = crude.brent.slice(ci);
+  const wtiv = crude.wti.slice(ci);
+
+  // 国内阶梯序列
+  const domMap = {};
+  const dts = DATA.dates, src = pd['92'];
+  for (let i = 0; i < dts.length; i++) if (src[i] != null) domMap[dts[i]] = src[i];
+  let lastVal = null;
+  const dom = axis.map(d => { if (domMap[d] != null) lastVal = domMap[d]; return lastVal; });
+
+  const series = [
+    { name:'92# 汽油（元/升）', type:'line', step:'end', symbol:'none',
+      lineStyle:{width:2.2,color:COLORS['92']}, itemStyle:{color:COLORS['92']}, data:dom, yAxisIndex:0 },
+    { name:'布伦特（美元/桶）', type:'line', smooth:0.2, symbol:'none',
+      lineStyle:{width:1.6,color:'#e8834a'}, itemStyle:{color:'#e8834a'}, data:bren, yAxisIndex:1 },
+    { name:'WTI（美元/桶）', type:'line', smooth:0.2, symbol:'none',
+      lineStyle:{width:1.6,color:'#9b8cf0'}, itemStyle:{color:'#9b8cf0'}, data:wtiv, yAxisIndex:1 },
+  ];
+
+  setOption('chart2', {
+    tooltip:{ trigger:'axis', backgroundColor:tc.panel, borderColor:tc.border, textStyle:{color:tc.text},
+      axisPointer:{ type:'line' } },
+    legend:{ textStyle:{color:tc.muted}, top:0, itemGap:16 },
+    grid:{ left:52, right:58, top:38, bottom:56 },
+    xAxis:{ type:'category', data:axis, boundaryGap:false,
+      axisLine:{lineStyle:{color:tc.border}}, axisLabel:{color:tc.muted,fontSize:11}, axisTick:{show:false} },
+    yAxis:[
+      { type:'value', name:'元/升', nameTextStyle:{color:tc.muted,fontSize:11}, scale:true,
+        splitLine:{lineStyle:{color:tc.split}}, axisLabel:{color:tc.muted,fontSize:11} },
+      { type:'value', name:'美元/桶', nameTextStyle:{color:tc.muted,fontSize:11}, scale:true,
+        splitLine:{show:false}, axisLabel:{color:tc.muted,fontSize:11} },
+    ],
+    dataZoom:[{ type:'inside' },{ type:'slider', height:18, bottom:14,
+      borderColor:tc.border, textStyle:{color:tc.muted}, handleStyle:{color:tc.muted} }],
+    series,
+  });
+}
+
+/* ---------- 图3：调价幅度 ---------- */
+function renderChart3(){
+  const tc = themeColors(), s = slice(), pd = DATA.provinces_data[state.prov];
+  const series = state.types.map(k => ({
+    name: LABELS[k], type:'bar', barMaxWidth:22,
+    itemStyle:{ color: p => (p.value == null ? 'transparent'
+                            : (p.value >= 0 ? tc.up : tc.down)) },
+    data: pd['d'+k].slice(s.start),
+  }));
+  const all = [];
+  state.types.forEach(k => pd['d'+k].slice(s.start).forEach(v => { if (v != null) all.push(v); }));
+  const upN = all.filter(v => v > 0).length, dnN = all.filter(v => v < 0).length;
+  const avg = all.length ? all.reduce((a,b)=>a+b,0)/all.length : 0;
+  $('desc3').innerHTML =
+    `${state.prov} · 区间内共 ${all.length} 次记录　|　上调 <b class="up">${upN}</b> 次　`
+    + `下调 <b class="down">${dnN}</b> 次　·　平均每次 <b class="${cls(avg)}">${sign(avg)}</b> 元/升　`
+    + `<span style="opacity:.75">（红=涨，绿=跌）</span>`;
+
+  setOption('chart3', {
+    tooltip:{ trigger:'axis', backgroundColor:tc.panel, borderColor:tc.border, textStyle:{color:tc.text},
+      valueFormatter: v => (v == null ? '—' : sign(v) + ' 元/升') },
+    legend:{ data:state.types.map(k=>LABELS[k]), textStyle:{color:tc.muted}, top:0, itemGap:16 },
+    grid:{ left:52, right:18, top:38, bottom:56 },
+    xAxis:{ type:'category', data:s.dates,
+      axisLine:{lineStyle:{color:tc.border}}, axisLabel:{color:tc.muted,fontSize:11}, axisTick:{show:false} },
+    yAxis:{ type:'value', name:'元/升', nameTextStyle:{color:tc.muted,fontSize:11},
+      splitLine:{lineStyle:{color:tc.split}}, axisLabel:{color:tc.muted,fontSize:11} },
+    dataZoom:[{ type:'inside' },{ type:'slider', height:18, bottom:14,
+      borderColor:tc.border, textStyle:{color:tc.muted}, handleStyle:{color:tc.muted} }],
+    series,
+  });
+}
+
+/* ---------- 表格 ---------- */
+function renderTable(){
+  const i = DATA.dates.length - 1;
+  const rows = DATA.provinces.map(p => {
+    const pd = DATA.provinces_data[p];
+    return { p, v92:pd['92'][i], v95:pd['95'][i], v89:pd['89'][i], v0:pd['0'][i],
+             d92:pd['d92'][i], d95:pd['d95'][i], d0:pd['d0'][i] };
+  }).sort((a,b) => (b.v92 ?? 0) - (a.v92 ?? 0));
+
+  const vals = rows.map(r => r.v92).filter(v => v != null);
+  const avg = vals.reduce((a,b)=>a+b,0)/vals.length;
+
+  $('descTable').innerHTML =
+    `生效日 ${DATA.dates[i]}　·　按 92# 降序　·　全国均价 <b>${fmt(avg)}</b> 元/升`
+    + `　最高 <b>${rows[0].p}</b> ${fmt(rows[0].v92)}　最低 <b>${rows[rows.length-1].p}</b> ${fmt(rows[rows.length-1].v92)}`;
+
+  $('tbl').innerHTML =
+    `<thead><tr><th>地区</th><th>92#</th><th>涨跌</th><th>95#</th><th>涨跌</th><th>89#</th><th>0# 柴油</th><th>涨跌</th></tr></thead>`
+    + `<tbody>` + rows.map(r => `
+      <tr class="${r.p===state.prov?'sel':''}">
+        <td>${r.p}</td>
+        <td class="num">${fmt(r.v92)}</td>
+        <td class="num ${cls(r.d92)}">${r.d92!=null?sign(r.d92):'—'}</td>
+        <td class="num">${fmt(r.v95)}</td>
+        <td class="num ${cls(r.d95)}">${r.d95!=null?sign(r.d95):'—'}</td>
+        <td class="num">${fmt(r.v89)}</td>
+        <td class="num">${fmt(r.v0)}</td>
+        <td class="num ${cls(r.d0)}">${r.d0!=null?sign(r.d0):'—'}</td>
+      </tr>`).join('') + `</tbody>`;
+}
+
+/* ---------- ECharts 封装 ---------- */
+function setOption(id, option){
+  if (!charts[id]) charts[id] = echarts.init($(id), null, { renderer:'canvas' });
+  charts[id].setOption(option, true);
+}
+
+function renderAll(){
+  renderCards(); renderChart1(); renderChart2(); renderChart3(); renderTable();
+}
+
+function applyTheme(){
+  document.documentElement.setAttribute('data-theme', state.theme);
+  try { localStorage.setItem('oil-theme', state.theme); } catch(e){}
+}
+
+/* ---------- 启动 ---------- */
+(async function init(){
+  try{
+    const saved = localStorage.getItem('oil-theme');
+    if (saved) state.theme = saved;
+    else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) state.theme = 'light';
+    applyTheme();
+
+    DATA = await loadData();
+    state.prov = DATA.meta.default_province || DATA.provinces[0];
+
+    renderControls();
+    renderAll();
+
+    $('themeBtn').onclick = () => {
+      state.theme = state.theme === 'dark' ? 'light' : 'dark';
+      applyTheme();
+      Object.values(charts).forEach(c => c.dispose());
+      charts = {};
+      renderAll();
+    };
+
+    window.addEventListener('resize', () => Object.values(charts).forEach(c => c.resize()));
+
+    $('foot').innerHTML = (DATA.meta.sources || []).map(s =>
+      `${s.name}（${s.用途}）`).join('　|　')
+      + `<br>本页面数据由 GitHub Actions 每日自动更新，仅供个人参考，实际加油请以加油站挂牌价为准。`;
+  }catch(err){
+    document.querySelector('.wrap').innerHTML =
+      `<div class="err">数据加载失败：${err.message}<br>
+       请确认 <code>prices.json</code> 与本页在同一目录下。<br>
+       若是首次部署，请先在仓库中手动运行一次 <b>update</b> 工作流。</div>`;
+    console.error(err);
+  }
+})();
+</script>
+</body>
+</html>

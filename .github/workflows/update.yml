@@ -1,0 +1,83 @@
+name: update-oil-price
+
+on:
+  # 北京时间 01:00 / 09:00 / 17:00 各跑一次（UTC = 北京 - 8h）
+  schedule:
+    - cron: "0 17 * * *"   # 北京次日凌晨 01:00 — 抓覆盖跨午夜更新的调价
+    - cron: "0 1 * * *"    # 北京上午 09:00
+    - cron: "0 9 * * *"    # 北京下午 17:00
+  workflow_dispatch:
+    inputs:
+      full:
+        description: 强制全量重抓
+        type: boolean
+        default: false
+  push:
+    paths: [fetch_oil.py, .github/workflows/update.yml]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: oil-price-update
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Fetch oil price data
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.full }}" = "true" ]; then
+            python fetch_oil.py --full
+          else
+            python fetch_oil.py
+          fi
+
+      - name: Rebuild standalone offline HTML
+        run: python build_standalone.py
+
+      - name: Commit & push
+        run: |
+          git config user.name "oil-price-bot"
+          git config user.email "bot@users.noreply.github.com"
+          if git diff --quiet data/prices.json docs/prices.json docs/oil-price-offline.html 2>/dev/null; then
+            echo "无变化，跳过提交"
+            exit 0
+          fi
+          git add data/prices.json docs/prices.json docs/oil-price-offline.html
+          ts="$(date '+%Y-%m-%d %H:%M:%S %Z')"
+          git commit -m "auto: refresh oil price at $ts"
+          git push
+
+      - name: Send daily digest email (Beijing 09:00 run only)
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        env:
+          MAIL_USERNAME:    ${{ secrets.MAIL_USERNAME }}
+          MAIL_PASSWORD:    ${{ secrets.MAIL_PASSWORD }}
+          MAIL_FROM:        ${{ secrets.MAIL_FROM }}
+          MAIL_TO:          ${{ secrets.MAIL_TO }}
+          MAIL_SERVER:      ${{ secrets.MAIL_SERVER }}
+          MAIL_PORT:        ${{ secrets.MAIL_PORT }}
+          DIGEST_TITLE:     油价日报
+          DIGEST_PROVINCE:  浙江
+        run: |
+          python mail_digest.py \
+            --province "$DIGEST_PROVINCE" \
+            --title "$DIGEST_TITLE" \
+            --to "$MAIL_TO" \
+            --from "$MAIL_FROM" \
+            --server "$MAIL_SERVER" \
+            --port "$MAIL_PORT" \
+            --user "$MAIL_USERNAME" \
+            --password "$MAIL_PASSWORD"
+          # 邮件发送失败不阻断数据更新（已在 mail_digest.py 内做 swallow）
