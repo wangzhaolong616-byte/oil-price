@@ -10,7 +10,10 @@
 |---|:--:|:--:|---|
 | **`docs/index.html`** | 🌐 **在线版页面** | 👀 **看这个** | GitHub Pages 托管的主页面。浏览器打开就是你看到的看板。数据靠同目录 `docs/prices.json` 供给 |
 | **`docs/oil-price-offline.html`** | 💾 **离线版页面** | 👀 **看这个** | **1.5 MB 单文件**，ECharts + 数据全内嵌。双击就能开，**不用联网、不用服务器**，可存手机/发微信 |
-| `docs/prices.json` | 📊 数据（给在线版用） | 自动 | 495 KB 价格数据，由 `fetch_oil.py` 每次抓取后自动覆盖 |
+| **`docs/guide.html`** | 📘 **使用手册** | 👀 **看这个** | 面向非开发者的完整手册（11 章 + 图解）：怎么用、GitHub 怎么运作、手机端怎么加桌面、邮件怎么配、出问题怎么办。线上地址 `/guide.html` |
+| `docs/manifest.webmanifest` | ⚙️ 配置 | 不用管 | PWA 清单，让手机能把网页「添加到主屏幕」当 App 用 |
+| `docs/icon-192.png` / `icon-512.png` / `apple-touch-icon.png` | 🎨 图标 | 不用管 | 添加到主屏幕后显示的图标（PIL 生成：深色圆角底 + 三条油价曲线 + 红点） |
+| `docs/prices.json` | 📊 数据（给在线版用） | 自动 | 505 KB 价格数据，由 `fetch_oil.py` 每次抓取后自动覆盖 |
 | `docs/vendor/echarts.min.js` | 📚 图表库 | 不用管 | ECharts 5.5.1（1 MB）。**刻意放在本地**，避免依赖 CDN 挂掉 |
 | `docs/.nojekyll` | ⚙️ 配置 | 不用管 | 告诉 GitHub Pages 别用 Jekyll 处理，否则 `vendor/` 会被吞掉 |
 | **`fetch_oil.py`** | 🔧 **源码 · 核心** | 想改就看这 | 抓取脚本。抓东财 + 新浪 + FRED + 腾讯，做多源对账，算出下次调价预测。**纯标准库，零依赖** |
