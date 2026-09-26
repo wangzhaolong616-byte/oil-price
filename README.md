@@ -20,7 +20,8 @@
 | **`build_standalone.py`** | 🔧 源码 | 不用管 | 把 `index.html` + ECharts + 数据 → 合成离线单文件版 |
 | **`mail_digest.py`** | 🔧 源码 | 配邮件才用 | 生成并发邮件日报（纯 `smtplib`，无第三方库） |
 | `smoke_test.py` | 🧪 测试 | 不用管 | 无头浏览器冒烟测试：检查 3 张卡片、31 行表格、3 个图表是否渲染正常 |
-| **`.github/workflows/update.yml`** | ⚙️ **源码 · 自动化** | 想改频率看这 | GitHub Actions 工作流。每天 3 次自动跑：抓取 → 生成离线版 → 提交 → 发邮件 |
+| **`.github/workflows/update.yml`** | ⚙️ **源码 · 自动化** | 想改频率看这 | GitHub Actions 工作流。每天 2 次（北京 00:23 / 08:23）自动跑：抓取 → 生成离线版 → 提交 → 08:23 那次发邮件 |
+| **`.github/workflows/verify.yml`** | 🛡️ **源码 · 哨兵** | 不用管 | 每天北京 10:23 自动核对：9 个线上资源是否 200、**线上数据哈希是否等于仓库最新提交**、数据是否超过 30 小时未更新。任一不过则报错（GitHub 会邮件通知仓库所有者） |
 | `data/prices.json` | 📊 数据存档 | 不用管 | 与 `docs/prices.json` 同内容，留作存档/备份 |
 | `README.md` | 📖 说明 | 👀 | 本文件 |
 | `LICENSE` | ⚖️ 协议 | 不用管 | MIT |
