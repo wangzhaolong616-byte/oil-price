@@ -33,6 +33,8 @@ from email.mime.text import MIMEText
 CST = timezone(timedelta(hours=8))
 ROOT = os.path.dirname(os.path.abspath(__file__))
 PRICES = os.path.join(ROOT, "docs", "prices.json")
+PAGES_URL = os.environ.get(
+    "PAGES_URL", "https://wangzhaolong616-byte.github.io/oil-price/")
 
 
 def fmt(v: float | None, d: int = 2) -> str:
@@ -94,7 +96,7 @@ def render(d: dict, province: str) -> tuple[str, str, str]:
     text.append("")
     text.append("—")
     text.append("本邮件由 GitHub Actions 自动生成。最终加油价格以加油站挂牌价为准。")
-    text.append("详细图表见：你的 GitHub Pages 链接。")
+    text.append(f"详细图表见：{PAGES_URL}")
 
     html = f"""<!doctype html>
 <html><body style="font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;color:#1f2937;max-width:560px">
@@ -126,12 +128,14 @@ def render(d: dict, province: str) -> tuple[str, str, str]:
 </div>
 
 <hr style="border:none;border-top:1px solid #eef2f6;margin:18px 0">
-<div style="color:#9ca3af;font-size:11px">本邮件由 GitHub Actions 自动生成。最终加油价格以加油站挂牌价为准。</div>
+<div style="color:#9ca3af;font-size:11px">本邮件由 GitHub Actions 自动生成。最终加油价格以加油站挂牌价为准。<br>
+看板地址：<a href="{PAGES_URL}" style="color:#4a9eff">{PAGES_URL}</a></div>
 </body></html>"""
 
-    subj = (f"[油价日报] {province} {direction}"
-            + (f" 估算 {est:+.2f} 元/升" if est is not None else "")
-            + f" · {today}")
+    # 主题里的日期用「发送日」（北京时间），避免收件人误以为收到的是隔天旧报
+    send_date = datetime.now(CST).strftime("%Y-%m-%d")
+    subj = (f"[油价日报] {send_date} · {province} {direction}"
+            + (f" 估算 {est:+.2f} 元/升" if est is not None else ""))
     return subj, "\n".join(text), html
 
 
